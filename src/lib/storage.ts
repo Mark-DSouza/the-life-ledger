@@ -34,9 +34,10 @@ export function useUserData<T>(key: string, seed: T) {
     }
     setLoading(true);
     load({ data: { key } })
-      .then((res) => {
+      .then((res: unknown) => {
         if (cancelled) return;
-        setData((res?.data as T) ?? seed);
+        const d = (res as { data?: unknown } | null)?.data;
+        setData((d as T) ?? seed);
         loadedRef.current = true;
         setLoading(false);
       })
