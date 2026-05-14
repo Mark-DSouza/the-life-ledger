@@ -1,12 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { RequireAuth, PageHeader } from "@/components/require-auth";
 import { ExpandableCard, Pill } from "@/components/expandable-card";
 import { InlineEdit } from "@/components/inline-edit";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
-import { loadData, saveData, WEEKDAYS, type Weekday } from "@/lib/storage";
+import { useUserData, WEEKDAYS, type Weekday } from "@/lib/storage";
 
 export const Route = createFileRoute("/meals")({
   head: () => ({
@@ -39,11 +38,7 @@ const DEFAULT: Record<Weekday, { meals: Meal[]; goal: number }> = WEEKDAYS.reduc
 );
 
 function MealsPage() {
-  const { user } = useAuth();
-  const [week, setWeek] = useState(DEFAULT);
-
-  useEffect(() => setWeek(loadData(user?.id, "meals", DEFAULT)), [user?.id]);
-  useEffect(() => saveData(user?.id, "meals", week), [user?.id, week]);
+  const { data: week, setData: setWeek } = useUserData("meals", DEFAULT);
 
   const totals = useMemo(() => {
     return WEEKDAYS.reduce((acc, d) => {

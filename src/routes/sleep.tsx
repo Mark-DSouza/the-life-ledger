@@ -1,12 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { RequireAuth, PageHeader } from "@/components/require-auth";
 import { ExpandableCard, Pill } from "@/components/expandable-card";
 import { InlineEdit } from "@/components/inline-edit";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
-import { loadData, saveData, WEEKDAYS, type Weekday } from "@/lib/storage";
+import { useUserData, WEEKDAYS, type Weekday } from "@/lib/storage";
 
 export const Route = createFileRoute("/sleep")({
   head: () => ({
@@ -40,11 +38,7 @@ const DEFAULT: Record<Weekday, DaySleep> = WEEKDAYS.reduce(
 );
 
 function SleepPage() {
-  const { user } = useAuth();
-  const [week, setWeek] = useState(DEFAULT);
-
-  useEffect(() => setWeek(loadData(user?.id, "sleep", DEFAULT)), [user?.id]);
-  useEffect(() => saveData(user?.id, "sleep", week), [user?.id, week]);
+  const { data: week, setData: setWeek } = useUserData("sleep", DEFAULT);
 
   const update = (day: Weekday, patch: Partial<DaySleep>) =>
     setWeek((w) => ({ ...w, [day]: { ...w[day], ...patch } }));

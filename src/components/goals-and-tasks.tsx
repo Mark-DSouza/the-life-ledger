@@ -1,7 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Plus, Trash2, Target, CheckCircle2, Circle } from "lucide-react";
-import { useAuth } from "@/lib/auth";
-import { loadData, saveData } from "@/lib/storage";
+import { useUserData } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { InlineEdit } from "@/components/inline-edit";
 import { PageHeader } from "@/components/require-auth";
@@ -31,14 +30,7 @@ export function GoalsAndTasks({
   seed: GoalsBoard;
   intro?: ReactNode;
 }) {
-  const { user } = useAuth();
-  const [board, setBoard] = useState<GoalsBoard>(seed);
-
-  useEffect(() => {
-    setBoard(loadData(user?.id, storageKey, seed));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, storageKey]);
-  useEffect(() => saveData(user?.id, storageKey, board), [user?.id, storageKey, board]);
+  const { data: board, setData: setBoard } = useUserData<GoalsBoard>(storageKey, seed);
 
   const update = (patch: Partial<GoalsBoard>) => setBoard((b) => ({ ...b, ...patch }));
 

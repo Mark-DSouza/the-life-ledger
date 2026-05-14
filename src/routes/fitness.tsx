@@ -1,12 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { RequireAuth, PageHeader } from "@/components/require-auth";
 import { ExpandableCard, Pill } from "@/components/expandable-card";
 import { InlineEdit } from "@/components/inline-edit";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
-import { loadData, saveData, WEEKDAYS, type Weekday } from "@/lib/storage";
+import { useUserData, WEEKDAYS, type Weekday } from "@/lib/storage";
 
 export const Route = createFileRoute("/fitness")({
   head: () => ({
@@ -81,16 +79,10 @@ const TYPE_TONE: Record<WorkoutType, "primary" | "muted" | "success" | "warn"> =
 };
 
 function FitnessPage() {
-  const { user } = useAuth();
-  const [week, setWeek] = useState<Record<Weekday, DayData>>(DEFAULT);
-
-  useEffect(() => {
-    setWeek(loadData(user?.id, "fitness", DEFAULT));
-  }, [user?.id]);
-
-  useEffect(() => {
-    saveData(user?.id, "fitness", week);
-  }, [user?.id, week]);
+  const { data: week, setData: setWeek } = useUserData<Record<Weekday, DayData>>(
+    "fitness",
+    DEFAULT,
+  );
 
   const update = (day: Weekday, patch: Partial<DayData>) =>
     setWeek((w) => ({ ...w, [day]: { ...w[day], ...patch } }));
