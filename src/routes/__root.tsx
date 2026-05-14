@@ -43,7 +43,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Something went sideways
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">An unexpected error occurred. Please try again.</p>
+        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -86,6 +86,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#0D0D1A" },
+      { name: "twitter:title", content: "LifeOS — Manage every aspect of your life" },
+      { name: "description", content: "LifeOS is a responsive website for comprehensive life management, tracking fitness, meals, sleep, and well-being." },
+      { property: "og:description", content: "LifeOS is a responsive website for comprehensive life management, tracking fitness, meals, sleep, and well-being." },
+      { name: "twitter:description", content: "LifeOS is a responsive website for comprehensive life management, tracking fitness, meals, sleep, and well-being." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4b427c0f-7b47-47e2-b6c0-3698ca11209d/id-preview-dc8ce8da--678df9e1-3cc1-4b18-8620-32c0e777b21c.lovable.app-1778751778796.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4b427c0f-7b47-47e2-b6c0-3698ca11209d/id-preview-dc8ce8da--678df9e1-3cc1-4b18-8620-32c0e777b21c.lovable.app-1778751778796.png" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
