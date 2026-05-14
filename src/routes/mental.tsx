@@ -1,12 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { RequireAuth, PageHeader } from "@/components/require-auth";
 import { ExpandableCard, Pill } from "@/components/expandable-card";
 import { InlineEdit } from "@/components/inline-edit";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
-import { loadData, saveData, WEEKDAYS, type Weekday } from "@/lib/storage";
+import { useUserData, WEEKDAYS, type Weekday } from "@/lib/storage";
 
 export const Route = createFileRoute("/mental")({
   head: () => ({
@@ -83,11 +81,7 @@ function ScoreSlider({
 }
 
 function MentalPage() {
-  const { user } = useAuth();
-  const [week, setWeek] = useState(DEFAULT);
-
-  useEffect(() => setWeek(loadData(user?.id, "mental", DEFAULT)), [user?.id]);
-  useEffect(() => saveData(user?.id, "mental", week), [user?.id, week]);
+  const { data: week, setData: setWeek } = useUserData("mental", DEFAULT);
 
   const update = (day: Weekday, patch: Partial<DayMental>) =>
     setWeek((w) => ({ ...w, [day]: { ...w[day], ...patch } }));

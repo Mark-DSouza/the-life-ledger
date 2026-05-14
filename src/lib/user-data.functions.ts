@@ -33,7 +33,7 @@ export const saveUserData = createServerFn({ method: "POST" })
     const { error } = await supabase
       .from("user_data")
       .upsert(
-        { user_id: userId, key: data.key, data: data.data as object },
+        { user_id: userId, key: data.key, data: data.data as never },
         { onConflict: "user_id,key" },
       );
     if (error) throw error;
