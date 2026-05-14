@@ -461,7 +461,7 @@ export const getUserData = createServerFn({ method: "GET" })
     else if (k === "sleep") result = await loadSleep(supabase, userId);
     else if (k === "mental") result = await loadMental(supabase, userId);
     else result = await loadBoard(supabase, userId, k as Area);
-    return { data: result };
+    return { data: (result ?? null) as never };
   });
 
 export const saveUserData = createServerFn({ method: "POST" })
