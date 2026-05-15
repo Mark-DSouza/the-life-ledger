@@ -1,67 +1,62 @@
+# Harden saveUserData and ignore .env
 
-# Normalize LifeOS data into per-feature schemas
+## 1. Add `.env` to `.gitignore`
 
-Today every feature (fitness, meals, sleep, mental, personal, career, work) stores its entire weekly state as one JSON blob in `public.user_data`. That works but is opaque to SQL — we can't filter, aggregate, index, or evolve fields safely. This plan replaces it with one schema per feature, each with proper columns, foreign keys, and RLS.
+Append a small section to `.gitignore`:
 
-## Tables to create
+```
+# Local env files
+.env
+.env.*
+!.env.example
+```
 
-All tables: `user_id uuid not null` (references `auth.users` logically — no FK, per project rules), `created_at`, `updated_at` with `touch_updated_at` trigger, RLS `auth.uid() = user_id` for select/insert/update/delete, and an index on `user_id` (plus extras noted).
+This prevents future accidental commits if a real secret is ever added (today the file only holds publishable keys, so nothing needs to be removed from git history).
 
-### Fitness (3 tables)
-- **`fitness_days`** — one row per (user_id, weekday)
-  - `weekday` (enum `weekday_enum`: Mon…Sun), `type` (enum `workout_type`: Strength, Hypertrophy, Cardio, Rest), `summary text`
-  - unique `(user_id, weekday)`
-- **`fitness_lifts`** — child of `fitness_days`
-  - `day_id uuid` FK, `position int`, `body_part text`, `name text`, `reps int`, `weight numeric(6,2)`, `seat text`
-- **`fitness_cardio`** — child of `fitness_days`
-  - `day_id uuid` FK, `position int`, `name text`, `pace text`, `duration_min int`, `bpm int`
+## 2. Replace `z.unknown()` in `saveUserData` with strict per-key schemas
 
-### Meals (2 tables)
-- **`meal_days`** — `(user_id, weekday) unique`, `calorie_goal int default 2200`
-- **`meal_entries`** — `day_id` FK, `position int`, `name text`, `calories int`, `protein_g int`, `carb_g int`, `fat_g int`
+In `src/lib/user-data.functions.ts`, define a Zod schema for each `key` (fitness, meals, sleep, mental, personal/career/work) and validate the inner `data` payload before any DB write. Use a discriminated dispatch keyed off `key` so each branch parses with the correct schema.
 
-### Sleep (2 tables)
-- **`sleep_days`** — `(user_id, weekday) unique`, `bedtime time`, `wake_time time`
-- **`sleep_interruptions`** — `day_id` FK, `position int`, `at time`, `reason text`
+### Schemas (one per feature)
 
-### Mental health (3 tables)
-- **`mental_days`** — `(user_id, weekday) unique`, `happiness smallint check 1..10`, `productivity smallint check 1..10`, `stress smallint check 1..10`, `therapy text`, `notes text`
-- **`mental_actions`** — `day_id` FK, `position int`, `text text`, `done bool`
+All free-text strings get `.trim().max(...)`, all numbers get `min/max` ranges matching DB/UI semantics, all arrays get `.max(...)` caps. Unknown extra fields are stripped (Zod default).
 
-### Goals & tasks (shared by Personal / Career / Work) (2 tables)
-- **`life_goals`** — `area text check in ('personal','career','work')`, `title text`, `horizon text`, `progress smallint check 0..100`, `notes text`, `position int`
-  - index `(user_id, area)`
-- **`life_tasks`** — `area text` (same check), `bucket text check in ('this_week','later')`, `text text`, `done bool`, `position int`
-  - index `(user_id, area, bucket)`
+- **FitnessWeekSchema** — `Record<Weekday, { type: enum(Strength|Hypertrophy|Cardio|Rest), bodyParts: string≤200, lifts: array(≤50) of { bodyPart≤100, name≤200, reps int 0–1000, weight 0–10000, seat≤50 }, cardio: array(≤20) of { name≤200, pace≤50, duration int 0–1440, bpm int 0–300 } }>`
+- **MealsWeekSchema** — `Record<Weekday, { goal int 0–20000, meals: array(≤30) of { name≤200, calories 0–10000, protein 0–1000, carb 0–1000, fat 0–1000 } }>`
+- **SleepWeekSchema** — `Record<Weekday, { start: HH:MM regex, end: HH:MM regex, interruptions: array(≤20) of { time: HH:MM, reason≤500 } }>`
+- **MentalWeekSchema** — `Record<Weekday, { happiness 1–10, productivity 1–10, stress 1–10, therapy≤2000, notes≤2000, actions: array(≤30) of { text≤500, done: boolean } }>`
+- **BoardSchema** (personal/career/work) — `{ goals: array(≤50) of { title≤200, horizon≤100, progress 0–100, notes≤2000 }, thisWeek: array(≤200) of { text≤500, done: boolean }, later: array(≤200) of { text≤500, done: boolean } }`
 
-Total: **12 new tables**, 2 enums (`weekday_enum`, `workout_type`), 1 reused trigger function (`touch_updated_at` already exists).
+Build the weekday schemas with a helper that maps over `WEEKDAYS` so all 7 days are required and validated identically.
 
-## Why this shape
+### Validator wiring
 
-- One row per (user, weekday) for the day-keyed features matches the UI exactly and lets us upsert a single day cheaply.
-- Children (lifts, cardio, meals, interruptions, actions) are separate rows so we can add/remove/reorder without rewriting a JSON document, and so future features (history, charts, weekly trends) can aggregate with SQL.
-- Personal/Career/Work share `life_goals` + `life_tasks` with an `area` discriminator — they're structurally identical and this avoids 6 near-duplicate tables.
-- Enums for `weekday` and `workout_type` keep values constrained without check-constraint maintenance.
-- Validation lives in CHECK constraints for static ranges (1..10, 0..100) — these are immutable, which is the safe case for CHECK per project rules.
+Replace the current validator:
 
-## Code changes (after migration approval)
+```ts
+.inputValidator((input) => {
+  const outer = z.object({ key: KEY, data: z.unknown() }).parse(input);
+  switch (outer.key) {
+    case "fitness": return { key: outer.key, data: FitnessWeekSchema.parse(outer.data) };
+    case "meals":   return { key: outer.key, data: MealsWeekSchema.parse(outer.data) };
+    case "sleep":   return { key: outer.key, data: SleepWeekSchema.parse(outer.data) };
+    case "mental":  return { key: outer.key, data: MentalWeekSchema.parse(outer.data) };
+    case "personal":
+    case "career":
+    case "work":    return { key: outer.key, data: BoardSchema.parse(outer.data) };
+  }
+})
+```
 
-1. Regenerate `src/integrations/supabase/types.ts` (automatic).
-2. Replace `src/lib/user-data.functions.ts` with feature-specific server functions:
-   - `fitness.functions.ts` — `getFitnessWeek`, `upsertFitnessDay`, `addLift/updateLift/deleteLift`, `addCardio/updateCardio/deleteCardio`
-   - `meals.functions.ts` — `getMealsWeek`, `updateMealDay`, `addMeal/updateMeal/deleteMeal`
-   - `sleep.functions.ts` — analogous
-   - `mental.functions.ts` — analogous + `addAction/updateAction/deleteAction`
-   - `goals.functions.ts` — `getBoard(area)`, goal + task CRUD
-3. Refactor each route (`fitness.tsx`, `meals.tsx`, `sleep.tsx`, `mental.tsx`, `personal.tsx`, `career.tsx`, `work.tsx`) and `goals-and-tasks.tsx` to call the new server fns instead of `useUserData`. Use TanStack Query (`useQuery` + `useMutation` with optimistic updates) so per-row edits don't refetch the whole week.
-4. Backfill: write a one-shot server fn that reads existing `user_data` rows for the signed-in user and inserts into the new tables, then deletes the old rows. Triggered automatically on first load of each page (idempotent: skip if normalized rows already exist).
-5. Drop `public.user_data` table after backfill is verified (separate follow-up migration so we can roll back).
-6. Delete `src/lib/storage.ts` `useUserData` once nothing references it.
+Keep handler dispatch as-is; the inner save helpers (`saveFitness`, `saveMeals`, …) keep their `data: unknown` signatures and `as` casts so no other code changes. The cast is now safe because data is pre-validated.
 
-## Open questions
+## 3. Mark security finding fixed
 
-1. Are you OK sharing one `life_goals` + `life_tasks` table across Personal / Career / Work via an `area` column, or do you want three separate table pairs?
-2. Should the backfill run automatically on first load, or do you want a one-time migration script you trigger explicitly?
-3. Drop `user_data` immediately after backfill, or keep it around for one release as a safety net?
+After the change lands, call `manage_security_finding` with `mark_as_fixed` on `agent_security` / `SERVER_FN_UNVALIDATED_INPUT` so it drops off the Security tab.
 
-Reply with answers (or "go ahead with defaults: shared goals tables, automatic backfill, keep `user_data` for one release") and I'll write the migration + code.
+## Files touched
+
+- `.gitignore` — append env-file rules
+- `src/lib/user-data.functions.ts` — add 5 schemas + discriminated validator
+
+No DB migrations, no client changes.
