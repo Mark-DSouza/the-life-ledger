@@ -447,6 +447,120 @@ async function saveBoard(supabase: DB, userId: string, area: Area, data: unknown
   }
 }
 
+// ---------------- input schemas ----------------
+
+const TIME_HHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Expected HH:MM");
+
+function weekSchema<T extends z.ZodTypeAny>(day: T) {
+  return z.object(
+    WEEKDAYS.reduce(
+      (acc, d) => ({ ...acc, [d]: day }),
+      {} as Record<Weekday, T>,
+    ),
+  ) as z.ZodObject<Record<Weekday, T>>;
+}
+
+const FitnessDaySchema = z.object({
+  type: z.enum(["Strength", "Hypertrophy", "Cardio", "Rest"]),
+  bodyParts: z.string().max(200).default(""),
+  lifts: z
+    .array(
+      z.object({
+        bodyPart: z.string().max(100).default(""),
+        name: z.string().max(200).default(""),
+        reps: z.number().int().min(0).max(1000),
+        weight: z.number().min(0).max(10000),
+        seat: z.string().max(50).default(""),
+      }),
+    )
+    .max(50)
+    .default([]),
+  cardio: z
+    .array(
+      z.object({
+        name: z.string().max(200).default(""),
+        pace: z.string().max(50).default(""),
+        duration: z.number().int().min(0).max(1440),
+        bpm: z.number().int().min(0).max(300),
+      }),
+    )
+    .max(20)
+    .default([]),
+});
+const FitnessWeekSchema = weekSchema(FitnessDaySchema);
+
+const MealsDaySchema = z.object({
+  goal: z.number().int().min(0).max(20000),
+  meals: z
+    .array(
+      z.object({
+        name: z.string().max(200).default(""),
+        calories: z.number().min(0).max(10000),
+        protein: z.number().min(0).max(1000),
+        carb: z.number().min(0).max(1000),
+        fat: z.number().min(0).max(1000),
+      }),
+    )
+    .max(30)
+    .default([]),
+});
+const MealsWeekSchema = weekSchema(MealsDaySchema);
+
+const SleepDaySchema = z.object({
+  start: TIME_HHMM,
+  end: TIME_HHMM,
+  interruptions: z
+    .array(
+      z.object({
+        time: TIME_HHMM,
+        reason: z.string().max(500).default(""),
+      }),
+    )
+    .max(20)
+    .default([]),
+});
+const SleepWeekSchema = weekSchema(SleepDaySchema);
+
+const MentalDaySchema = z.object({
+  happiness: z.number().int().min(1).max(10),
+  productivity: z.number().int().min(1).max(10),
+  stress: z.number().int().min(1).max(10),
+  therapy: z.string().max(2000).default(""),
+  notes: z.string().max(2000).default(""),
+  actions: z
+    .array(
+      z.object({
+        text: z.string().max(500).default(""),
+        done: z.boolean(),
+      }),
+    )
+    .max(30)
+    .default([]),
+});
+const MentalWeekSchema = weekSchema(MentalDaySchema);
+
+const BoardSchema = z.object({
+  goals: z
+    .array(
+      z.object({
+        title: z.string().max(200).default(""),
+        horizon: z.string().max(100).default(""),
+        progress: z.number().int().min(0).max(100),
+        notes: z.string().max(2000).default(""),
+      }),
+    )
+    .max(50)
+    .default([]),
+  thisWeek: z
+    .array(z.object({ text: z.string().max(500).default(""), done: z.boolean() }))
+    .max(200)
+    .default([]),
+  later: z
+    .array(z.object({ text: z.string().max(500).default(""), done: z.boolean() }))
+    .max(200)
+    .default([]),
+});
+
 // ---------------- public server fns ----------------
 
 export const getUserData = createServerFn({ method: "GET" })
@@ -466,9 +580,23 @@ export const getUserData = createServerFn({ method: "GET" })
 
 export const saveUserData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ key: KEY, data: z.unknown() }).parse(input),
-  )
+  .inputValidator((input) => {
+    const outer = z.object({ key: KEY, data: z.unknown() }).parse(input);
+    switch (outer.key) {
+      case "fitness":
+        return { key: outer.key, data: FitnessWeekSchema.parse(outer.data) };
+      case "meals":
+        return { key: outer.key, data: MealsWeekSchema.parse(outer.data) };
+      case "sleep":
+        return { key: outer.key, data: SleepWeekSchema.parse(outer.data) };
+      case "mental":
+        return { key: outer.key, data: MentalWeekSchema.parse(outer.data) };
+      case "personal":
+      case "career":
+      case "work":
+        return { key: outer.key, data: BoardSchema.parse(outer.data) };
+    }
+  })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const k = data.key as Key;
