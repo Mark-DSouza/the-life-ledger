@@ -80,7 +80,7 @@ function LoginPage() {
     <AuthShell title="Welcome back" subtitle="Sign in to continue managing your life.">
       {mode === "form" && (
         <div className="space-y-5">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
