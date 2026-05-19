@@ -82,7 +82,7 @@ function SignupPage() {
     <AuthShell title="Create your LifeOS" subtitle="Pick an avatar and tell us who you are.">
       {mode === "form" && (
         <div className="space-y-5">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="name">Name</Label>
             <Input
               id="name"
@@ -94,7 +94,7 @@ function SignupPage() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Avatar</Label>
             <div className="grid grid-cols-6 gap-2">
               {AVATARS.map((a) => (
@@ -117,7 +117,7 @@ function SignupPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
