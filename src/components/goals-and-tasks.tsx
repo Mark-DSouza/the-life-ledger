@@ -43,9 +43,7 @@ export function GoalsAndTasks({
       <section className="mb-8">
         <div className="mb-3 flex items-center gap-2">
           <Target className="h-4 w-4 text-primary-light" />
-          <h2 className="text-sm font-medium uppercase tracking-wider text-tertiary">
-            Goals
-          </h2>
+          <h2 className="text-sm font-medium uppercase tracking-wider text-tertiary">Goals</h2>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {board.goals.map((g, idx) => (
@@ -129,7 +127,13 @@ export function GoalsAndTasks({
               update({
                 goals: [
                   ...board.goals,
-                  { id: crypto.randomUUID(), title: "New goal", horizon: "3 months", progress: 0, notes: "" },
+                  {
+                    id: crypto.randomUUID(),
+                    title: "New goal",
+                    horizon: "3 months",
+                    progress: 0,
+                    notes: "",
+                  },
                 ],
               })
             }
@@ -207,10 +211,7 @@ export function GoalsAndTasks({
                 size="sm"
                 onClick={() =>
                   update({
-                    [bucket]: [
-                      ...items,
-                      { id: crypto.randomUUID(), text: "", done: false },
-                    ],
+                    [bucket]: [...items, { id: crypto.randomUUID(), text: "", done: false }],
                   } as Partial<GoalsBoard>)
                 }
                 className="mt-3 border-border bg-card hover:bg-card-nested"

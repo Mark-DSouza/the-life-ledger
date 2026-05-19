@@ -17,9 +17,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   return (
     <AppShell>
       {!user ? (
-        <div className="grid min-h-[40vh] place-items-center text-tertiary">
-          Redirecting…
-        </div>
+        <div className="grid min-h-[40vh] place-items-center text-tertiary">Redirecting…</div>
       ) : (
         children
       )}
@@ -40,9 +38,7 @@ export function PageHeader({
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
-        {subtitle ? (
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-        ) : null}
+        {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
       </div>
       {right}
     </div>

@@ -29,13 +29,55 @@ export const Route = createFileRoute("/")({
 });
 
 const TILES = [
-  { to: "/fitness", title: "Fitness", desc: "Plan workouts, log reps & cardio.", icon: Dumbbell, accent: "from-violet-500 to-fuchsia-500" },
-  { to: "/meals", title: "Meals", desc: "Track calories & macros every day.", icon: UtensilsCrossed, accent: "from-emerald-400 to-teal-500" },
-  { to: "/sleep", title: "Sleep", desc: "Bedtime, wake-up, interruptions.", icon: Moon, accent: "from-indigo-400 to-blue-500" },
-  { to: "/mental", title: "Mental Wellbeing", desc: "Mood, stress & therapy notes.", icon: Brain, accent: "from-pink-400 to-rose-500" },
-  { to: "/personal", title: "Personal", desc: "Habits, relationships, growth.", icon: UserIcon, accent: "from-amber-400 to-orange-500" },
-  { to: "/career", title: "Career", desc: "Long-term goals & milestones.", icon: ListChecks, accent: "from-cyan-400 to-sky-500" },
-  { to: "/work", title: "Work", desc: "Projects, deep work, deliverables.", icon: Briefcase, accent: "from-purple-500 to-violet-600" },
+  {
+    to: "/fitness",
+    title: "Fitness",
+    desc: "Plan workouts, log reps & cardio.",
+    icon: Dumbbell,
+    accent: "from-violet-500 to-fuchsia-500",
+  },
+  {
+    to: "/meals",
+    title: "Meals",
+    desc: "Track calories & macros every day.",
+    icon: UtensilsCrossed,
+    accent: "from-emerald-400 to-teal-500",
+  },
+  {
+    to: "/sleep",
+    title: "Sleep",
+    desc: "Bedtime, wake-up, interruptions.",
+    icon: Moon,
+    accent: "from-indigo-400 to-blue-500",
+  },
+  {
+    to: "/mental",
+    title: "Mental Wellbeing",
+    desc: "Mood, stress & therapy notes.",
+    icon: Brain,
+    accent: "from-pink-400 to-rose-500",
+  },
+  {
+    to: "/personal",
+    title: "Personal",
+    desc: "Habits, relationships, growth.",
+    icon: UserIcon,
+    accent: "from-amber-400 to-orange-500",
+  },
+  {
+    to: "/career",
+    title: "Career",
+    desc: "Long-term goals & milestones.",
+    icon: ListChecks,
+    accent: "from-cyan-400 to-sky-500",
+  },
+  {
+    to: "/work",
+    title: "Work",
+    desc: "Projects, deep work, deliverables.",
+    icon: Briefcase,
+    accent: "from-purple-500 to-violet-600",
+  },
 ] as const;
 
 const CHART_DATA = [
@@ -82,8 +124,8 @@ function LandingPage() {
               One calm dashboard for every part of your life.
             </h1>
             <p className="mt-2 max-w-xl text-muted-foreground">
-              Track fitness, meals, sleep, mental wellbeing, personal growth, career and
-              work — all in one place.
+              Track fitness, meals, sleep, mental wellbeing, personal growth, career and work — all
+              in one place.
             </p>
           </div>
           {!user && (
@@ -171,8 +213,19 @@ function LandingPage() {
                 ))}
               </defs>
               <CartesianGrid stroke="oklch(1 0 0 / 6%)" vertical={false} />
-              <XAxis dataKey="m" tickLine={false} axisLine={false} stroke="var(--text-tertiary)" fontSize={12} />
-              <YAxis tickLine={false} axisLine={false} stroke="var(--text-tertiary)" fontSize={12} />
+              <XAxis
+                dataKey="m"
+                tickLine={false}
+                axisLine={false}
+                stroke="var(--text-tertiary)"
+                fontSize={12}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                stroke="var(--text-tertiary)"
+                fontSize={12}
+              />
               <Tooltip
                 contentStyle={{
                   background: "var(--card)",
@@ -181,11 +234,41 @@ function LandingPage() {
                   color: "var(--foreground)",
                 }}
               />
-              <Area type="monotone" dataKey="Fitness" stroke="var(--chart-1)" fill="url(#g1)" strokeWidth={2} />
-              <Area type="monotone" dataKey="Meals" stroke="var(--chart-2)" fill="url(#g2)" strokeWidth={2} />
-              <Area type="monotone" dataKey="Mental" stroke="var(--chart-3)" fill="url(#g3)" strokeWidth={2} />
-              <Area type="monotone" dataKey="Career" stroke="var(--chart-4)" fill="url(#g4)" strokeWidth={2} />
-              <Area type="monotone" dataKey="Work" stroke="var(--chart-5)" fill="url(#g5)" strokeWidth={2} />
+              <Area
+                type="monotone"
+                dataKey="Fitness"
+                stroke="var(--chart-1)"
+                fill="url(#g1)"
+                strokeWidth={2}
+              />
+              <Area
+                type="monotone"
+                dataKey="Meals"
+                stroke="var(--chart-2)"
+                fill="url(#g2)"
+                strokeWidth={2}
+              />
+              <Area
+                type="monotone"
+                dataKey="Mental"
+                stroke="var(--chart-3)"
+                fill="url(#g3)"
+                strokeWidth={2}
+              />
+              <Area
+                type="monotone"
+                dataKey="Career"
+                stroke="var(--chart-4)"
+                fill="url(#g4)"
+                strokeWidth={2}
+              />
+              <Area
+                type="monotone"
+                dataKey="Work"
+                stroke="var(--chart-5)"
+                fill="url(#g5)"
+                strokeWidth={2}
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>

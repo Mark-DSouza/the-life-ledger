@@ -27,9 +27,7 @@ export function ExpandableCard({
             <span className="text-base font-semibold">{title}</span>
             {accent}
           </div>
-          {subtitle ? (
-            <div className="mt-1 text-sm text-muted-foreground">{subtitle}</div>
-          ) : null}
+          {subtitle ? <div className="mt-1 text-sm text-muted-foreground">{subtitle}</div> : null}
         </div>
         <ChevronDown
           className={cn(
@@ -39,15 +37,19 @@ export function ExpandableCard({
         />
       </button>
       {open ? (
-        <div className="border-t border-border/60 bg-card-nested/40 px-5 py-4">
-          {children}
-        </div>
+        <div className="border-t border-border/60 bg-card-nested/40 px-5 py-4">{children}</div>
       ) : null}
     </div>
   );
 }
 
-export function Pill({ children, tone = "muted" }: { children: ReactNode; tone?: "muted" | "primary" | "success" | "warn" }) {
+export function Pill({
+  children,
+  tone = "muted",
+}: {
+  children: ReactNode;
+  tone?: "muted" | "primary" | "success" | "warn";
+}) {
   const tones: Record<string, string> = {
     muted: "bg-card-nested text-muted-foreground border-border",
     primary: "bg-primary/15 text-primary-light border-primary/30",

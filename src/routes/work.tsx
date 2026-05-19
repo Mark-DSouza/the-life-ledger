@@ -6,7 +6,10 @@ export const Route = createFileRoute("/work")({
   head: () => ({
     meta: [
       { title: "Work — LifeOS" },
-      { name: "description", content: "Track current projects, deep-work blocks and weekly deliverables." },
+      {
+        name: "description",
+        content: "Track current projects, deep-work blocks and weekly deliverables.",
+      },
     ],
   }),
   component: () => (
@@ -23,8 +26,20 @@ export const Route = createFileRoute("/work")({
 
 const SEED: GoalsBoard = {
   goals: [
-    { id: "1", title: "Ship Q3 roadmap on time", horizon: "Quarter", progress: 55, notes: "On track, watch billing scope" },
-    { id: "2", title: "Reduce p95 latency by 30%", horizon: "8 weeks", progress: 40, notes: "Cache layer rolling out" },
+    {
+      id: "1",
+      title: "Ship Q3 roadmap on time",
+      horizon: "Quarter",
+      progress: 55,
+      notes: "On track, watch billing scope",
+    },
+    {
+      id: "2",
+      title: "Reduce p95 latency by 30%",
+      horizon: "8 weeks",
+      progress: 40,
+      notes: "Cache layer rolling out",
+    },
   ],
   thisWeek: [
     { id: "1", text: "Roadmap review draft", done: false },

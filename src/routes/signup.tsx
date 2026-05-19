@@ -15,7 +15,10 @@ export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
       { title: "Create your LifeOS account" },
-      { name: "description", content: "Start your LifeOS — pick an avatar and we'll send a one-time code or magic link." },
+      {
+        name: "description",
+        content: "Start your LifeOS — pick an avatar and we'll send a one-time code or magic link.",
+      },
     ],
   }),
   component: SignupPage,
@@ -46,8 +49,7 @@ function SignupPage() {
       options: {
         shouldCreateUser: true,
         data: { name: name.trim(), avatar },
-        emailRedirectTo:
-          typeof window !== "undefined" ? window.location.origin : undefined,
+        emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
       },
     });
     setBusy(false);
@@ -134,7 +136,11 @@ function SignupPage() {
               disabled={busy}
               className="h-11 bg-primary text-primary-foreground hover:bg-primary-light"
             >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+              {busy ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <KeyRound className="h-4 w-4" />
+              )}
               Get OTP
             </Button>
             <Button

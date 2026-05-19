@@ -6,7 +6,10 @@ export const Route = createFileRoute("/personal")({
   head: () => ({
     meta: [
       { title: "Personal — LifeOS" },
-      { name: "description", content: "Track personal goals, habits, and meaningful moments outside work." },
+      {
+        name: "description",
+        content: "Track personal goals, habits, and meaningful moments outside work.",
+      },
     ],
   }),
   component: () => (
@@ -23,8 +26,20 @@ export const Route = createFileRoute("/personal")({
 
 const SEED: GoalsBoard = {
   goals: [
-    { id: "1", title: "Read 12 books this year", horizon: "12 months", progress: 35, notes: "Currently: 'Designing Your Life'" },
-    { id: "2", title: "Call parents weekly", horizon: "Ongoing", progress: 70, notes: "Sundays after lunch" },
+    {
+      id: "1",
+      title: "Read 12 books this year",
+      horizon: "12 months",
+      progress: 35,
+      notes: "Currently: 'Designing Your Life'",
+    },
+    {
+      id: "2",
+      title: "Call parents weekly",
+      horizon: "Ongoing",
+      progress: 70,
+      notes: "Sundays after lunch",
+    },
   ],
   thisWeek: [
     { id: "1", text: "Date night Friday", done: false },

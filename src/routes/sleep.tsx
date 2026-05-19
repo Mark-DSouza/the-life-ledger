@@ -10,7 +10,10 @@ export const Route = createFileRoute("/sleep")({
   head: () => ({
     meta: [
       { title: "Sleep — LifeOS" },
-      { name: "description", content: "Track sleep start, wake time, and interruptions for every day of the week." },
+      {
+        name: "description",
+        content: "Track sleep start, wake time, and interruptions for every day of the week.",
+      },
     ],
   }),
   component: () => (
@@ -45,7 +48,10 @@ function SleepPage() {
 
   return (
     <>
-      <PageHeader title="Sleep" subtitle="Log when you went to bed, when you woke up, and any interruptions." />
+      <PageHeader
+        title="Sleep"
+        subtitle="Log when you went to bed, when you woke up, and any interruptions."
+      />
       <div className="space-y-3">
         {WEEKDAYS.map((day) => {
           const d = week[day];
@@ -67,7 +73,9 @@ function SleepPage() {
                 <>
                   <Pill tone={tone}>{hrs} h</Pill>
                   {d.interruptions.length > 0 ? (
-                    <Pill tone="muted">{d.interruptions.length} wake-up{d.interruptions.length === 1 ? "" : "s"}</Pill>
+                    <Pill tone="muted">
+                      {d.interruptions.length} wake-up{d.interruptions.length === 1 ? "" : "s"}
+                    </Pill>
                   ) : null}
                 </>
               }
