@@ -55,8 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <nav className="mt-2 flex-1 space-y-1 px-3">
         {NAV.map(({ to, label, icon: Icon }) => {
-          const active =
-            to === "/" ? path === "/" : path === to || path.startsWith(`${to}/`);
+          const active = to === "/" ? path === "/" : path === to || path.startsWith(`${to}/`);
           return (
             <Link
               key={to}
@@ -154,10 +153,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Mobile sidebar drawer */}
         {mobileOpen && (
           <div className="fixed inset-0 z-40 lg:hidden">
-            <div
-              className="absolute inset-0 bg-black/60"
-              onClick={() => setMobileOpen(false)}
-            />
+            <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
             <aside className="absolute left-0 top-0 h-full w-72 border-r border-border bg-sidebar">
               {SidebarInner}
             </aside>
@@ -167,9 +163,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="min-h-[calc(100vh-56px)] flex-1 bg-background lg:min-h-screen">
           <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
             {loading ? (
-              <div className="grid min-h-[40vh] place-items-center text-tertiary">
-                Loading…
-              </div>
+              <div className="grid min-h-[40vh] place-items-center text-tertiary">Loading…</div>
             ) : (
               children
             )}

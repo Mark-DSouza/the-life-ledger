@@ -10,7 +10,10 @@ export const Route = createFileRoute("/fitness")({
   head: () => ({
     meta: [
       { title: "Fitness — LifeOS" },
-      { name: "description", content: "Plan your weekly workouts. Track sets, reps, weight, cardio, pace and BPM." },
+      {
+        name: "description",
+        content: "Plan your weekly workouts. Track sets, reps, weight, cardio, pace and BPM.",
+      },
     ],
   }),
   component: () => (
@@ -47,27 +50,53 @@ type DayData = {
 };
 
 const DEFAULT: Record<Weekday, DayData> = {
-  Mon: { type: "Hypertrophy", bodyParts: "Chest - Triceps", lifts: [
-    { id: "1", bodyPart: "Chest", name: "Bench Press", reps: 10, weight: 60, seat: "—" },
-    { id: "2", bodyPart: "Triceps", name: "Cable Pushdown", reps: 12, weight: 25, seat: "—" },
-  ], cardio: [] },
-  Tue: { type: "Cardio", bodyParts: "Zone 2 - Easy", lifts: [], cardio: [
-    { id: "1", name: "Treadmill", pace: "6:30/km", duration: 35, bpm: 138 },
-  ] },
-  Wed: { type: "Strength", bodyParts: "Back - Biceps", lifts: [
-    { id: "1", bodyPart: "Back", name: "Deadlift", reps: 5, weight: 110, seat: "—" },
-    { id: "2", bodyPart: "Biceps", name: "Barbell Curl", reps: 8, weight: 30, seat: "—" },
-  ], cardio: [] },
-  Thu: { type: "Hypertrophy", bodyParts: "Shoulders - Abs", lifts: [
-    { id: "1", bodyPart: "Shoulders", name: "Overhead Press", reps: 10, weight: 35, seat: "5" },
-  ], cardio: [] },
-  Fri: { type: "Strength", bodyParts: "Legs", lifts: [
-    { id: "1", bodyPart: "Quads", name: "Back Squat", reps: 5, weight: 100, seat: "—" },
-    { id: "2", bodyPart: "Hamstrings", name: "Romanian DL", reps: 8, weight: 80, seat: "—" },
-  ], cardio: [] },
-  Sat: { type: "Cardio", bodyParts: "Tempo run", lifts: [], cardio: [
-    { id: "1", name: "Outdoor run", pace: "5:20/km", duration: 25, bpm: 162 },
-  ] },
+  Mon: {
+    type: "Hypertrophy",
+    bodyParts: "Chest - Triceps",
+    lifts: [
+      { id: "1", bodyPart: "Chest", name: "Bench Press", reps: 10, weight: 60, seat: "—" },
+      { id: "2", bodyPart: "Triceps", name: "Cable Pushdown", reps: 12, weight: 25, seat: "—" },
+    ],
+    cardio: [],
+  },
+  Tue: {
+    type: "Cardio",
+    bodyParts: "Zone 2 - Easy",
+    lifts: [],
+    cardio: [{ id: "1", name: "Treadmill", pace: "6:30/km", duration: 35, bpm: 138 }],
+  },
+  Wed: {
+    type: "Strength",
+    bodyParts: "Back - Biceps",
+    lifts: [
+      { id: "1", bodyPart: "Back", name: "Deadlift", reps: 5, weight: 110, seat: "—" },
+      { id: "2", bodyPart: "Biceps", name: "Barbell Curl", reps: 8, weight: 30, seat: "—" },
+    ],
+    cardio: [],
+  },
+  Thu: {
+    type: "Hypertrophy",
+    bodyParts: "Shoulders - Abs",
+    lifts: [
+      { id: "1", bodyPart: "Shoulders", name: "Overhead Press", reps: 10, weight: 35, seat: "5" },
+    ],
+    cardio: [],
+  },
+  Fri: {
+    type: "Strength",
+    bodyParts: "Legs",
+    lifts: [
+      { id: "1", bodyPart: "Quads", name: "Back Squat", reps: 5, weight: 100, seat: "—" },
+      { id: "2", bodyPart: "Hamstrings", name: "Romanian DL", reps: 8, weight: 80, seat: "—" },
+    ],
+    cardio: [],
+  },
+  Sat: {
+    type: "Cardio",
+    bodyParts: "Tempo run",
+    lifts: [],
+    cardio: [{ id: "1", name: "Outdoor run", pace: "5:20/km", duration: 25, bpm: 162 }],
+  },
   Sun: { type: "Rest", bodyParts: "Mobility & walk", lifts: [], cardio: [] },
 };
 
@@ -89,7 +118,10 @@ function FitnessPage() {
 
   return (
     <>
-      <PageHeader title="Fitness" subtitle="Plan workouts for every day of the week. Tap a card to expand." />
+      <PageHeader
+        title="Fitness"
+        subtitle="Plan workouts for every day of the week. Tap a card to expand."
+      />
       <div className="space-y-3">
         {WEEKDAYS.map((day) => {
           const d = week[day];
@@ -166,7 +198,9 @@ function FitnessPage() {
                             value={c.duration}
                             onChange={(v) =>
                               update(day, {
-                                cardio: d.cardio.map((x, i) => (i === idx ? { ...x, duration: Number(v) } : x)),
+                                cardio: d.cardio.map((x, i) =>
+                                  i === idx ? { ...x, duration: Number(v) } : x,
+                                ),
                               })
                             }
                             suffix="min"
@@ -180,7 +214,9 @@ function FitnessPage() {
                             value={c.bpm}
                             onChange={(v) =>
                               update(day, {
-                                cardio: d.cardio.map((x, i) => (i === idx ? { ...x, bpm: Number(v) } : x)),
+                                cardio: d.cardio.map((x, i) =>
+                                  i === idx ? { ...x, bpm: Number(v) } : x,
+                                ),
                               })
                             }
                             width="4ch"
@@ -204,7 +240,13 @@ function FitnessPage() {
                         update(day, {
                           cardio: [
                             ...d.cardio,
-                            { id: crypto.randomUUID(), name: "New cardio", pace: "—", duration: 20, bpm: 130 },
+                            {
+                              id: crypto.randomUUID(),
+                              name: "New cardio",
+                              pace: "—",
+                              duration: 20,
+                              bpm: 130,
+                            },
                           ],
                         })
                       }
@@ -248,7 +290,9 @@ function FitnessPage() {
                             value={ex.reps}
                             onChange={(v) =>
                               update(day, {
-                                lifts: d.lifts.map((x, i) => (i === idx ? { ...x, reps: Number(v) } : x)),
+                                lifts: d.lifts.map((x, i) =>
+                                  i === idx ? { ...x, reps: Number(v) } : x,
+                                ),
                               })
                             }
                             width="4ch"
@@ -261,7 +305,9 @@ function FitnessPage() {
                             value={ex.weight}
                             onChange={(v) =>
                               update(day, {
-                                lifts: d.lifts.map((x, i) => (i === idx ? { ...x, weight: Number(v) } : x)),
+                                lifts: d.lifts.map((x, i) =>
+                                  i === idx ? { ...x, weight: Number(v) } : x,
+                                ),
                               })
                             }
                             suffix="kg"
@@ -297,7 +343,14 @@ function FitnessPage() {
                         update(day, {
                           lifts: [
                             ...d.lifts,
-                            { id: crypto.randomUUID(), bodyPart: "—", name: "New exercise", reps: 10, weight: 20, seat: "—" },
+                            {
+                              id: crypto.randomUUID(),
+                              bodyPart: "—",
+                              name: "New exercise",
+                              reps: 10,
+                              weight: 20,
+                              seat: "—",
+                            },
                           ],
                         })
                       }

@@ -9,24 +9,13 @@ type DB = SupabaseClient<Database>;
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 type Weekday = (typeof WEEKDAYS)[number];
 
-const KEY = z.enum([
-  "fitness",
-  "meals",
-  "sleep",
-  "mental",
-  "personal",
-  "career",
-  "work",
-]);
+const KEY = z.enum(["fitness", "meals", "sleep", "mental", "personal", "career", "work"]);
 type Key = z.infer<typeof KEY>;
 
 // ---------------- shape helpers ----------------
 
 function emptyWeek<T>(make: () => T): Record<Weekday, T> {
-  return WEEKDAYS.reduce(
-    (acc, d) => ({ ...acc, [d]: make() }),
-    {} as Record<Weekday, T>,
-  );
+  return WEEKDAYS.reduce((acc, d) => ({ ...acc, [d]: make() }), {} as Record<Weekday, T>);
 }
 
 // ---------------- FITNESS ----------------
@@ -81,12 +70,15 @@ async function loadFitness(supabase: DB, userId: string) {
 }
 
 async function saveFitness(supabase: DB, userId: string, data: unknown) {
-  const week = data as Record<Weekday, {
-    type: string;
-    bodyParts: string;
-    lifts: { bodyPart: string; name: string; reps: number; weight: number; seat: string }[];
-    cardio: { name: string; pace: string; duration: number; bpm: number }[];
-  }>;
+  const week = data as Record<
+    Weekday,
+    {
+      type: string;
+      bodyParts: string;
+      lifts: { bodyPart: string; name: string; reps: number; weight: number; seat: string }[];
+      cardio: { name: string; pace: string; duration: number; bpm: number }[];
+    }
+  >;
 
   // Upsert each day, get id, then replace child rows.
   for (const wd of WEEKDAYS) {
@@ -169,10 +161,13 @@ async function loadMeals(supabase: DB, userId: string) {
 }
 
 async function saveMeals(supabase: DB, userId: string, data: unknown) {
-  const week = data as Record<Weekday, {
-    goal: number;
-    meals: { name: string; calories: number; protein: number; carb: number; fat: number }[];
-  }>;
+  const week = data as Record<
+    Weekday,
+    {
+      goal: number;
+      meals: { name: string; calories: number; protein: number; carb: number; fat: number }[];
+    }
+  >;
   for (const wd of WEEKDAYS) {
     const d = week[wd];
     if (!d) continue;
@@ -239,11 +234,14 @@ async function loadSleep(supabase: DB, userId: string) {
 }
 
 async function saveSleep(supabase: DB, userId: string, data: unknown) {
-  const week = data as Record<Weekday, {
-    start: string;
-    end: string;
-    interruptions: { time: string; reason: string }[];
-  }>;
+  const week = data as Record<
+    Weekday,
+    {
+      start: string;
+      end: string;
+      interruptions: { time: string; reason: string }[];
+    }
+  >;
   for (const wd of WEEKDAYS) {
     const d = week[wd];
     if (!d) continue;
@@ -313,14 +311,17 @@ async function loadMental(supabase: DB, userId: string) {
 }
 
 async function saveMental(supabase: DB, userId: string, data: unknown) {
-  const week = data as Record<Weekday, {
-    happiness: number;
-    productivity: number;
-    stress: number;
-    therapy: string;
-    notes: string;
-    actions: { text: string; done: boolean }[];
-  }>;
+  const week = data as Record<
+    Weekday,
+    {
+      happiness: number;
+      productivity: number;
+      stress: number;
+      therapy: string;
+      notes: string;
+      actions: { text: string; done: boolean }[];
+    }
+  >;
   const clamp = (n: number, min: number, max: number) =>
     Math.max(min, Math.min(max, Math.round(Number(n) || min)));
   for (const wd of WEEKDAYS) {
@@ -453,10 +454,7 @@ const TIME_HHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Expected HH:MM"
 
 function weekSchema<T extends z.ZodTypeAny>(day: T) {
   return z.object(
-    WEEKDAYS.reduce(
-      (acc, d) => ({ ...acc, [d]: day }),
-      {} as Record<Weekday, T>,
-    ),
+    WEEKDAYS.reduce((acc, d) => ({ ...acc, [d]: day }), {} as Record<Weekday, T>),
   ) as z.ZodObject<Record<Weekday, T>>;
 }
 

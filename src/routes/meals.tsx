@@ -11,7 +11,11 @@ export const Route = createFileRoute("/meals")({
   head: () => ({
     meta: [
       { title: "Meals — LifeOS" },
-      { name: "description", content: "Track every meal with calories and macros — protein, carb, fat — across the week." },
+      {
+        name: "description",
+        content:
+          "Track every meal with calories and macros — protein, carb, fat — across the week.",
+      },
     ],
   }),
   component: () => (
@@ -41,10 +45,13 @@ function MealsPage() {
   const { data: week, setData: setWeek } = useUserData("meals", DEFAULT);
 
   const totals = useMemo(() => {
-    return WEEKDAYS.reduce((acc, d) => {
-      acc[d] = week[d].meals.reduce((s, m) => s + (Number(m.calories) || 0), 0);
-      return acc;
-    }, {} as Record<Weekday, number>);
+    return WEEKDAYS.reduce(
+      (acc, d) => {
+        acc[d] = week[d].meals.reduce((s, m) => s + (Number(m.calories) || 0), 0);
+        return acc;
+      },
+      {} as Record<Weekday, number>,
+    );
   }, [week]);
 
   const update = (day: Weekday, patch: Partial<(typeof week)[Weekday]>) =>
@@ -72,9 +79,7 @@ function MealsPage() {
                   <Pill tone={remaining >= 0 ? "primary" : "warn"}>
                     {remaining >= 0 ? `${remaining} kcal left` : `${Math.abs(remaining)} over`}
                   </Pill>
-                  <span className="text-sm text-muted-foreground">
-                    Goal {d.goal} kcal
-                  </span>
+                  <span className="text-sm text-muted-foreground">Goal {d.goal} kcal</span>
                 </>
               }
             >
@@ -114,7 +119,9 @@ function MealsPage() {
                             value={m.calories}
                             onChange={(v) =>
                               update(day, {
-                                meals: d.meals.map((x, i) => (i === idx ? { ...x, calories: Number(v) } : x)),
+                                meals: d.meals.map((x, i) =>
+                                  i === idx ? { ...x, calories: Number(v) } : x,
+                                ),
                               })
                             }
                             suffix="kcal"
@@ -128,7 +135,9 @@ function MealsPage() {
                             value={m.protein}
                             onChange={(v) =>
                               update(day, {
-                                meals: d.meals.map((x, i) => (i === idx ? { ...x, protein: Number(v) } : x)),
+                                meals: d.meals.map((x, i) =>
+                                  i === idx ? { ...x, protein: Number(v) } : x,
+                                ),
                               })
                             }
                             suffix="g"
@@ -142,7 +151,9 @@ function MealsPage() {
                             value={m.carb}
                             onChange={(v) =>
                               update(day, {
-                                meals: d.meals.map((x, i) => (i === idx ? { ...x, carb: Number(v) } : x)),
+                                meals: d.meals.map((x, i) =>
+                                  i === idx ? { ...x, carb: Number(v) } : x,
+                                ),
                               })
                             }
                             suffix="g"
@@ -156,7 +167,9 @@ function MealsPage() {
                             value={m.fat}
                             onChange={(v) =>
                               update(day, {
-                                meals: d.meals.map((x, i) => (i === idx ? { ...x, fat: Number(v) } : x)),
+                                meals: d.meals.map((x, i) =>
+                                  i === idx ? { ...x, fat: Number(v) } : x,
+                                ),
                               })
                             }
                             suffix="g"
@@ -184,7 +197,14 @@ function MealsPage() {
                     update(day, {
                       meals: [
                         ...d.meals,
-                        { id: crypto.randomUUID(), name: "New meal", calories: 0, protein: 0, carb: 0, fat: 0 },
+                        {
+                          id: crypto.randomUUID(),
+                          name: "New meal",
+                          calories: 0,
+                          protein: 0,
+                          carb: 0,
+                          fat: 0,
+                        },
                       ],
                     })
                   }

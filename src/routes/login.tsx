@@ -14,7 +14,10 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Log in — LifeOS" },
-      { name: "description", content: "Sign in to your LifeOS dashboard with a one-time code or magic link." },
+      {
+        name: "description",
+        content: "Sign in to your LifeOS dashboard with a one-time code or magic link.",
+      },
     ],
   }),
   component: LoginPage,
@@ -95,7 +98,11 @@ function LoginPage() {
               disabled={busy}
               className="h-11 bg-primary text-primary-foreground hover:bg-primary-light"
             >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+              {busy ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <KeyRound className="h-4 w-4" />
+              )}
               Get OTP
             </Button>
             <Button
@@ -128,9 +135,7 @@ function LoginPage() {
         />
       )}
 
-      {mode === "link" && (
-        <LinkScreen email={email} onBack={() => setMode("form")} />
-      )}
+      {mode === "link" && <LinkScreen email={email} onBack={() => setMode("form")} />}
     </AuthShell>
   );
 }
@@ -160,8 +165,8 @@ export function AuthShell({
               One calm dashboard for every part of your life.
             </h2>
             <p className="mt-3 max-w-md text-muted-foreground">
-              Fitness, meals, sleep, mental wellbeing, personal goals, career and work — all
-              in one place. No passwords. Just sign in with your email.
+              Fitness, meals, sleep, mental wellbeing, personal goals, career and work — all in one
+              place. No passwords. Just sign in with your email.
             </p>
             <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
               {[
@@ -257,8 +262,8 @@ export function LinkScreen({ email, onBack }: { email: string; onBack: () => voi
       <div>
         <h3 className="text-lg font-semibold">Check your email</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          We sent a magic login link to{" "}
-          <span className="font-medium text-foreground">{email}</span>. Click it to sign in.
+          We sent a magic login link to <span className="font-medium text-foreground">{email}</span>
+          . Click it to sign in.
         </p>
       </div>
     </div>

@@ -10,7 +10,11 @@ export const Route = createFileRoute("/mental")({
   head: () => ({
     meta: [
       { title: "Mental Wellbeing — LifeOS" },
-      { name: "description", content: "Track happiness, productivity, stress, daily actions and therapy notes for every weekday." },
+      {
+        name: "description",
+        content:
+          "Track happiness, productivity, stress, daily actions and therapy notes for every weekday.",
+      },
     ],
   }),
   component: () => (
@@ -191,10 +195,7 @@ function MentalPage() {
                     size="sm"
                     onClick={() =>
                       update(day, {
-                        actions: [
-                          ...d.actions,
-                          { id: crypto.randomUUID(), text: "", done: false },
-                        ],
+                        actions: [...d.actions, { id: crypto.randomUUID(), text: "", done: false }],
                       })
                     }
                     className="mt-2 border-border bg-card hover:bg-card-nested"

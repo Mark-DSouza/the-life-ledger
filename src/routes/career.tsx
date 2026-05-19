@@ -6,7 +6,10 @@ export const Route = createFileRoute("/career")({
   head: () => ({
     meta: [
       { title: "Career — LifeOS" },
-      { name: "description", content: "Long-term career goals, milestones, and skills you're building." },
+      {
+        name: "description",
+        content: "Long-term career goals, milestones, and skills you're building.",
+      },
     ],
   }),
   component: () => (
@@ -23,8 +26,20 @@ export const Route = createFileRoute("/career")({
 
 const SEED: GoalsBoard = {
   goals: [
-    { id: "1", title: "Move into a Staff role", horizon: "18 months", progress: 25, notes: "Influence + writing" },
-    { id: "2", title: "Speak at one conference", horizon: "12 months", progress: 10, notes: "Draft abstract" },
+    {
+      id: "1",
+      title: "Move into a Staff role",
+      horizon: "18 months",
+      progress: 25,
+      notes: "Influence + writing",
+    },
+    {
+      id: "2",
+      title: "Speak at one conference",
+      horizon: "12 months",
+      progress: 10,
+      notes: "Draft abstract",
+    },
   ],
   thisWeek: [
     { id: "1", text: "Update LinkedIn headline", done: false },
