@@ -1,60 +1,33 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5";
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
-      fitness_cardio: {
-        Row: {
-          bpm: number;
-          created_at: string;
-          day_id: string;
-          duration_min: number;
-          id: string;
-          name: string;
-          pace: string;
-          position: number;
-          updated_at: string;
-          user_id: string;
-        };
-        Insert: {
-          bpm?: number;
-          created_at?: string;
-          day_id: string;
-          duration_min?: number;
-          id?: string;
-          name?: string;
-          pace?: string;
-          position?: number;
-          updated_at?: string;
-          user_id: string;
-        };
-        Update: {
-          bpm?: number;
-          created_at?: string;
-          day_id?: string;
-          duration_min?: number;
-          id?: string;
-          name?: string;
-          pace?: string;
-          position?: number;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "fitness_cardio_day_id_fkey";
-            columns: ["day_id"];
-            isOneToOne: false;
-            referencedRelation: "fitness_days";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       fitness_days: {
         Row: {
           created_at: string;
@@ -85,49 +58,64 @@ export type Database = {
         };
         Relationships: [];
       };
-      fitness_lifts: {
+      fitness_exercises: {
         Row: {
-          body_part: string;
+          body_part: string | null;
+          bpm: number | null;
           created_at: string;
           day_id: string;
+          duration_min: number | null;
+          exercise_type: Database["public"]["Enums"]["exercise_type_enum"];
           id: string;
           name: string;
+          pace: number | null;
           position: number;
-          reps: number;
-          seat: string;
+          reps: number | null;
+          seat: string | null;
+          sets: number | null;
           updated_at: string;
           user_id: string;
-          weight: number;
+          weight: number | null;
         };
         Insert: {
-          body_part?: string;
+          body_part?: string | null;
+          bpm?: number | null;
           created_at?: string;
           day_id: string;
+          duration_min?: number | null;
+          exercise_type: Database["public"]["Enums"]["exercise_type_enum"];
           id?: string;
           name?: string;
+          pace?: number | null;
           position?: number;
-          reps?: number;
-          seat?: string;
+          reps?: number | null;
+          seat?: string | null;
+          sets?: number | null;
           updated_at?: string;
           user_id: string;
-          weight?: number;
+          weight?: number | null;
         };
         Update: {
-          body_part?: string;
+          body_part?: string | null;
+          bpm?: number | null;
           created_at?: string;
           day_id?: string;
+          duration_min?: number | null;
+          exercise_type?: Database["public"]["Enums"]["exercise_type_enum"];
           id?: string;
           name?: string;
+          pace?: number | null;
           position?: number;
-          reps?: number;
-          seat?: string;
+          reps?: number | null;
+          seat?: string | null;
+          sets?: number | null;
           updated_at?: string;
           user_id?: string;
-          weight?: number;
+          weight?: number | null;
         };
         Relationships: [
           {
-            foreignKeyName: "fitness_lifts_day_id_fkey";
+            foreignKeyName: "fitness_exercises_day_id_fkey";
             columns: ["day_id"];
             isOneToOne: false;
             referencedRelation: "fitness_days";
@@ -467,6 +455,7 @@ export type Database = {
       [_ in never]: never;
     };
     Enums: {
+      exercise_type_enum: "lift" | "cardio";
       life_area: "personal" | "career" | "work";
       task_bucket: "this_week" | "later";
       weekday_enum: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
@@ -594,8 +583,12 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
+      exercise_type_enum: ["lift", "cardio"],
       life_area: ["personal", "career", "work"],
       task_bucket: ["this_week", "later"],
       weekday_enum: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],

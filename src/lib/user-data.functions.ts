@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { loadFitness, saveFitness, FitnessWeekSchema } from "./fitness-data";
 
 type DB = SupabaseClient<Database>;
 
@@ -16,115 +17,6 @@ type Key = z.infer<typeof KEY>;
 
 function emptyWeek<T>(make: () => T): Record<Weekday, T> {
   return WEEKDAYS.reduce((acc, d) => ({ ...acc, [d]: make() }), {} as Record<Weekday, T>);
-}
-
-// ---------------- FITNESS ----------------
-
-async function loadFitness(supabase: DB, userId: string) {
-  const [days, lifts, cardio] = await Promise.all([
-    supabase.from("fitness_days").select("*").eq("user_id", userId),
-    supabase.from("fitness_lifts").select("*").eq("user_id", userId).order("position"),
-    supabase.from("fitness_cardio").select("*").eq("user_id", userId).order("position"),
-  ]);
-  if (days.error) throw days.error;
-  if (lifts.error) throw lifts.error;
-  if (cardio.error) throw cardio.error;
-  if (!days.data || days.data.length === 0) return null;
-
-  const week = emptyWeek(() => ({
-    type: "Rest" as const,
-    bodyParts: "",
-    lifts: [] as unknown[],
-    cardio: [] as unknown[],
-  }));
-  const dayById = new Map<string, Weekday>();
-  for (const d of days.data) {
-    const wd = d.weekday as Weekday;
-    dayById.set(d.id, wd);
-    week[wd] = { type: d.type as never, bodyParts: d.summary, lifts: [], cardio: [] };
-  }
-  for (const l of lifts.data ?? []) {
-    const wd = dayById.get(l.day_id);
-    if (!wd) continue;
-    week[wd].lifts.push({
-      id: l.id,
-      bodyPart: l.body_part,
-      name: l.name,
-      reps: l.reps,
-      weight: Number(l.weight),
-      seat: l.seat,
-    });
-  }
-  for (const c of cardio.data ?? []) {
-    const wd = dayById.get(c.day_id);
-    if (!wd) continue;
-    week[wd].cardio.push({
-      id: c.id,
-      name: c.name,
-      pace: c.pace,
-      duration: c.duration_min,
-      bpm: c.bpm,
-    });
-  }
-  return week;
-}
-
-async function saveFitness(supabase: DB, userId: string, data: unknown) {
-  const week = data as Record<
-    Weekday,
-    {
-      type: string;
-      bodyParts: string;
-      lifts: { bodyPart: string; name: string; reps: number; weight: number; seat: string }[];
-      cardio: { name: string; pace: string; duration: number; bpm: number }[];
-    }
-  >;
-
-  // Upsert each day, get id, then replace child rows.
-  for (const wd of WEEKDAYS) {
-    const d = week[wd];
-    if (!d) continue;
-    const { data: dayRow, error: upErr } = await supabase
-      .from("fitness_days")
-      .upsert(
-        { user_id: userId, weekday: wd, type: d.type as never, summary: d.bodyParts ?? "" },
-        { onConflict: "user_id,weekday" },
-      )
-      .select("id")
-      .single();
-    if (upErr) throw upErr;
-
-    await supabase.from("fitness_lifts").delete().eq("day_id", dayRow.id);
-    if (d.lifts?.length) {
-      const rows = d.lifts.map((l, i) => ({
-        day_id: dayRow.id,
-        user_id: userId,
-        position: i,
-        body_part: l.bodyPart ?? "",
-        name: l.name ?? "",
-        reps: Number(l.reps) || 0,
-        weight: Number(l.weight) || 0,
-        seat: l.seat ?? "",
-      }));
-      const { error } = await supabase.from("fitness_lifts").insert(rows);
-      if (error) throw error;
-    }
-
-    await supabase.from("fitness_cardio").delete().eq("day_id", dayRow.id);
-    if (d.cardio?.length) {
-      const rows = d.cardio.map((c, i) => ({
-        day_id: dayRow.id,
-        user_id: userId,
-        position: i,
-        name: c.name ?? "",
-        pace: c.pace ?? "",
-        duration_min: Number(c.duration) || 0,
-        bpm: Number(c.bpm) || 0,
-      }));
-      const { error } = await supabase.from("fitness_cardio").insert(rows);
-      if (error) throw error;
-    }
-  }
 }
 
 // ---------------- MEALS ----------------
@@ -457,35 +349,6 @@ function weekSchema<T extends z.ZodTypeAny>(day: T) {
     WEEKDAYS.reduce((acc, d) => ({ ...acc, [d]: day }), {} as Record<Weekday, T>),
   ) as z.ZodObject<Record<Weekday, T>>;
 }
-
-const FitnessDaySchema = z.object({
-  type: z.enum(["Strength", "Hypertrophy", "Cardio", "Rest"]),
-  bodyParts: z.string().max(200).default(""),
-  lifts: z
-    .array(
-      z.object({
-        bodyPart: z.string().max(100).default(""),
-        name: z.string().max(200).default(""),
-        reps: z.number().int().min(0).max(1000),
-        weight: z.number().min(0).max(10000),
-        seat: z.string().max(50).default(""),
-      }),
-    )
-    .max(50)
-    .default([]),
-  cardio: z
-    .array(
-      z.object({
-        name: z.string().max(200).default(""),
-        pace: z.string().max(50).default(""),
-        duration: z.number().int().min(0).max(1440),
-        bpm: z.number().int().min(0).max(300),
-      }),
-    )
-    .max(20)
-    .default([]),
-});
-const FitnessWeekSchema = weekSchema(FitnessDaySchema);
 
 const MealsDaySchema = z.object({
   goal: z.number().int().min(0).max(20000),
