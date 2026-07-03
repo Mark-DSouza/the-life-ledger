@@ -49,6 +49,19 @@ describe("ExerciseRow", () => {
     expect(screen.queryByText("Sets")).not.toBeInTheDocument();
   });
 
+  it("labels the weight with the user's preferred unit", () => {
+    render(
+      <ExerciseRow exercise={lift} weightUnit="lbs" onChange={() => {}} onDelete={() => {}} />,
+    );
+    expect(screen.getByText("lbs")).toBeInTheDocument();
+    expect(screen.queryByText("kg")).not.toBeInTheDocument();
+  });
+
+  it("defaults the weight unit to kg", () => {
+    render(<ExerciseRow exercise={lift} onChange={() => {}} onDelete={() => {}} />);
+    expect(screen.getByText("kg")).toBeInTheDocument();
+  });
+
   it("fires onDelete when the delete button is clicked", () => {
     const onDelete = vi.fn();
     render(<ExerciseRow exercise={lift} onChange={() => {}} onDelete={onDelete} />);

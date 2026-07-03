@@ -4,8 +4,10 @@ import { RequireAuth, PageHeader } from "@/components/require-auth";
 import { ExpandableCard, Pill } from "@/components/expandable-card";
 import { InlineEdit } from "@/components/inline-edit";
 import { ExerciseRow } from "@/components/exercise-row";
+import { WeightUnitToggle } from "@/components/weight-unit-toggle";
 import { Button } from "@/components/ui/button";
 import { useUserData, WEEKDAYS, type Weekday } from "@/lib/storage";
+import { useWeightUnit } from "@/lib/preferences";
 import type { Exercise, FitnessDay, FitnessWeek } from "@/lib/fitness-data";
 
 export const Route = createFileRoute("/fitness")({
@@ -172,6 +174,7 @@ function newCardio(): Exercise {
 
 function FitnessPage() {
   const { data: week, setData: setWeek } = useUserData<FitnessWeek>("fitness", DEFAULT);
+  const { unit, setUnit } = useWeightUnit();
 
   const update = (day: Weekday, patch: Partial<FitnessDay>) =>
     setWeek((w) => ({ ...w, [day]: { ...w[day], ...patch } }));
@@ -181,6 +184,7 @@ function FitnessPage() {
       <PageHeader
         title="Fitness"
         subtitle="Plan workouts for every day of the week. Tap a card to expand."
+        right={<WeightUnitToggle value={unit} onChange={setUnit} />}
       />
       <div className="space-y-3">
         {WEEKDAYS.map((day) => {
@@ -231,6 +235,7 @@ function FitnessPage() {
                       <ExerciseRow
                         key={ex.id ?? idx}
                         exercise={ex}
+                        weightUnit={unit}
                         onChange={(updated) =>
                           update(day, {
                             exercises: d.exercises.map((x, i) => (i === idx ? updated : x)),

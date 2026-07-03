@@ -447,6 +447,27 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_preferences: {
+        Row: {
+          created_at: string;
+          updated_at: string;
+          user_id: string;
+          weight_unit: string;
+        };
+        Insert: {
+          created_at?: string;
+          updated_at?: string;
+          user_id: string;
+          weight_unit?: string;
+        };
+        Update: {
+          created_at?: string;
+          updated_at?: string;
+          user_id?: string;
+          weight_unit?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

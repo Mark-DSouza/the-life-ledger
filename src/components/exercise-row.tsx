@@ -5,10 +5,12 @@ import type { Exercise } from "@/lib/fitness-data";
 /** A single Training Week exercise — renders lift or cardio fields per exerciseType. */
 export function ExerciseRow({
   exercise,
+  weightUnit = "kg",
   onChange,
   onDelete,
 }: {
   exercise: Exercise;
+  weightUnit?: "kg" | "lbs";
   onChange: (exercise: Exercise) => void;
   onDelete: () => void;
 }) {
@@ -50,7 +52,7 @@ export function ExerciseRow({
               type="number"
               value={exercise.weight}
               onChange={(v) => onChange({ ...exercise, weight: num(v) })}
-              suffix="kg"
+              suffix={weightUnit}
               width="5ch"
             />
           </span>
