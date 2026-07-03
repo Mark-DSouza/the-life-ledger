@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { RequireAuth, PageHeader } from "@/components/require-auth";
 import { ExpandableCard, Pill } from "@/components/expandable-card";
 import { InlineEdit } from "@/components/inline-edit";
@@ -8,6 +8,7 @@ import { WeightUnitToggle } from "@/components/weight-unit-toggle";
 import { Button } from "@/components/ui/button";
 import { useUserData, WEEKDAYS, type Weekday } from "@/lib/storage";
 import { useWeightUnit } from "@/lib/preferences";
+import { exportFitnessCSV } from "@/lib/fitness-csv";
 import type { Exercise, FitnessDay, FitnessWeek } from "@/lib/fitness-data";
 
 export const Route = createFileRoute("/fitness")({
@@ -172,6 +173,15 @@ function newCardio(): Exercise {
   };
 }
 
+function downloadCSV(csv: string, filename: string) {
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function FitnessPage() {
   const { data: week, setData: setWeek } = useUserData<FitnessWeek>("fitness", DEFAULT);
   const { unit, setUnit } = useWeightUnit();
@@ -184,7 +194,19 @@ function FitnessPage() {
       <PageHeader
         title="Fitness"
         subtitle="Plan workouts for every day of the week. Tap a card to expand."
-        right={<WeightUnitToggle value={unit} onChange={setUnit} />}
+        right={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadCSV(exportFitnessCSV(week), "fitness-week.csv")}
+              className="border-border bg-card hover:bg-card-nested"
+            >
+              <Download className="h-3.5 w-3.5" /> Export CSV
+            </Button>
+            <WeightUnitToggle value={unit} onChange={setUnit} />
+          </div>
+        }
       />
       <div className="space-y-3">
         {WEEKDAYS.map((day) => {
