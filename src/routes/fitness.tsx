@@ -4,6 +4,7 @@ import { RequireAuth, PageHeader } from "@/components/require-auth";
 import { ExpandableCard, Pill } from "@/components/expandable-card";
 import { InlineEdit } from "@/components/inline-edit";
 import { ExerciseRow } from "@/components/exercise-row";
+import { ImportCsvButton } from "@/components/import-csv-button";
 import { WeightUnitToggle } from "@/components/weight-unit-toggle";
 import { Button } from "@/components/ui/button";
 import { useUserData, WEEKDAYS, type Weekday } from "@/lib/storage";
@@ -196,6 +197,7 @@ function FitnessPage() {
         subtitle="Plan workouts for every day of the week. Tap a card to expand."
         right={
           <div className="flex items-center gap-2">
+            <ImportCsvButton onImport={(w) => setWeek(w)} />
             <Button
               variant="outline"
               size="sm"

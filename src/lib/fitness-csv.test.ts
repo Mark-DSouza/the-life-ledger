@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { exportFitnessCSV } from "./fitness-csv";
+import { exportFitnessCSV, importFitnessCSV } from "./fitness-csv";
 import type { FitnessDay, FitnessWeek } from "./fitness-data";
 
 const HEADER =
@@ -108,5 +108,62 @@ describe("exportFitnessCSV", () => {
     expect(lines[1]).toBe(
       'Mon,Strength,"Back, Grip",lift,"Pull-ups, ""weighted""",Back,3,8,10,—,,,',
     );
+  });
+});
+
+describe("importFitnessCSV", () => {
+  const fullWeek = week({
+    Mon: {
+      type: "Hypertrophy",
+      bodyParts: "Chest, Triceps",
+      exercises: [
+        {
+          exerciseType: "lift",
+          name: "Bench Press",
+          bodyPart: "Chest",
+          sets: 3,
+          reps: 10,
+          weight: 60,
+          seat: "—",
+        },
+        { exerciseType: "cardio", name: "Cooldown walk", pace: 10.5, duration: 10, bpm: 110 },
+      ],
+    },
+    Sat: {
+      type: "Cardio",
+      bodyParts: "Tempo run",
+      exercises: [
+        { exerciseType: "cardio", name: "Outdoor run", pace: 5.33, duration: 25, bpm: 162 },
+      ],
+    },
+  });
+
+  it("round-trips a week exported by exportFitnessCSV", () => {
+    const result = importFitnessCSV(exportFitnessCSV(fullWeek));
+    expect(result).toEqual({ ok: true, week: fullWeek });
+  });
+
+  it("reports missing required columns", () => {
+    const noWeight = exportFitnessCSV(fullWeek)
+      .split("\n")
+      .map((line) => line.replace(",weight,", ",kilos,"))
+      .join("\n");
+    const result = importFitnessCSV(noWeight);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.join(" ")).toMatch(/weight/);
+  });
+
+  it("reports an unknown exercise_type with its row number", () => {
+    const csv = `${HEADER}\nMon,Strength,Back,swimming,Laps,,,,,,,,\n`;
+    const result = importFitnessCSV(csv);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors[0]).toMatch(/Row 2.*swimming/);
+  });
+
+  it("reports a non-numeric weight instead of importing garbage", () => {
+    const csv = `${HEADER}\nMon,Strength,Back,lift,Deadlift,Back,3,5,heavy,—,,,\n`;
+    const result = importFitnessCSV(csv);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors[0]).toMatch(/weight.*heavy/);
   });
 });
