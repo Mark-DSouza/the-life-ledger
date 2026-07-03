@@ -78,29 +78,45 @@ export async function loadFitness(supabase: DB, userId: string): Promise<Fitness
   for (const e of exercises.data ?? []) {
     const wd = dayById.get(e.day_id);
     if (!wd) continue;
-    if (e.exercise_type === "lift") {
-      week[wd].exercises.push({
-        id: e.id,
-        exerciseType: "lift",
-        name: e.name,
-        bodyPart: e.body_part ?? "",
-        sets: e.sets ?? 0,
-        reps: e.reps ?? 0,
-        weight: Number(e.weight ?? 0),
-        seat: e.seat ?? "",
-      });
-    } else {
-      week[wd].exercises.push({
-        id: e.id,
-        exerciseType: "cardio",
-        name: e.name,
-        pace: Number(e.pace ?? 0),
-        duration: e.duration_min ?? 0,
-        bpm: e.bpm ?? 0,
-      });
-    }
+    week[wd].exercises.push(exerciseFromRow(e));
   }
   return week;
+}
+
+/** Sparse DB row (fitness_exercises or workout_template_exercises) → Exercise. */
+export function exerciseFromRow(row: {
+  id?: string;
+  exercise_type: "lift" | "cardio";
+  name: string;
+  body_part: string | null;
+  sets: number | null;
+  reps: number | null;
+  weight: number | null;
+  seat: string | null;
+  pace: number | null;
+  duration_min: number | null;
+  bpm: number | null;
+}): Exercise {
+  if (row.exercise_type === "lift") {
+    return {
+      id: row.id,
+      exerciseType: "lift",
+      name: row.name,
+      bodyPart: row.body_part ?? "",
+      sets: row.sets ?? 0,
+      reps: row.reps ?? 0,
+      weight: Number(row.weight ?? 0),
+      seat: row.seat ?? "",
+    };
+  }
+  return {
+    id: row.id,
+    exerciseType: "cardio",
+    name: row.name,
+    pace: Number(row.pace ?? 0),
+    duration: row.duration_min ?? 0,
+    bpm: row.bpm ?? 0,
+  };
 }
 
 export async function saveFitness(supabase: DB, userId: string, data: unknown): Promise<void> {

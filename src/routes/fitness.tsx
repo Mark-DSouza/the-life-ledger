@@ -1,15 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { Download, Plus } from "lucide-react";
 import { RequireAuth, PageHeader } from "@/components/require-auth";
 import { ExpandableCard, Pill } from "@/components/expandable-card";
 import { InlineEdit } from "@/components/inline-edit";
 import { ExerciseRow } from "@/components/exercise-row";
 import { ImportCsvButton } from "@/components/import-csv-button";
+import { OnboardingWizard } from "@/components/onboarding-wizard";
 import { WeightUnitToggle } from "@/components/weight-unit-toggle";
 import { Button } from "@/components/ui/button";
 import { useUserData, WEEKDAYS, type Weekday } from "@/lib/storage";
 import { useWeightUnit } from "@/lib/preferences";
 import { exportFitnessCSV } from "@/lib/fitness-csv";
+import { saveUserData } from "@/lib/user-data.functions";
+import { applyWorkoutTemplate, getWorkoutTemplates } from "@/lib/fitness-templates.functions";
 import type { Exercise, FitnessDay, FitnessWeek } from "@/lib/fitness-data";
 
 export const Route = createFileRoute("/fitness")({
@@ -31,116 +35,18 @@ export const Route = createFileRoute("/fitness")({
 
 type DayType = FitnessDay["type"];
 
-const DEFAULT: FitnessWeek = {
-  Mon: {
-    type: "Hypertrophy",
-    bodyParts: "Chest - Triceps",
-    exercises: [
-      {
-        id: "1",
-        exerciseType: "lift",
-        bodyPart: "Chest",
-        name: "Bench Press",
-        sets: 3,
-        reps: 10,
-        weight: 60,
-        seat: "—",
-      },
-      {
-        id: "2",
-        exerciseType: "lift",
-        bodyPart: "Triceps",
-        name: "Cable Pushdown",
-        sets: 3,
-        reps: 12,
-        weight: 25,
-        seat: "—",
-      },
-    ],
-  },
-  Tue: {
-    type: "Cardio",
-    bodyParts: "Zone 2 - Easy",
-    exercises: [
-      { id: "1", exerciseType: "cardio", name: "Treadmill", pace: 6.5, duration: 35, bpm: 138 },
-    ],
-  },
-  Wed: {
-    type: "Strength",
-    bodyParts: "Back - Biceps",
-    exercises: [
-      {
-        id: "1",
-        exerciseType: "lift",
-        bodyPart: "Back",
-        name: "Deadlift",
-        sets: 3,
-        reps: 5,
-        weight: 110,
-        seat: "—",
-      },
-      {
-        id: "2",
-        exerciseType: "lift",
-        bodyPart: "Biceps",
-        name: "Barbell Curl",
-        sets: 3,
-        reps: 8,
-        weight: 30,
-        seat: "—",
-      },
-    ],
-  },
-  Thu: {
-    type: "Hypertrophy",
-    bodyParts: "Shoulders - Abs",
-    exercises: [
-      {
-        id: "1",
-        exerciseType: "lift",
-        bodyPart: "Shoulders",
-        name: "Overhead Press",
-        sets: 3,
-        reps: 10,
-        weight: 35,
-        seat: "5",
-      },
-    ],
-  },
-  Fri: {
-    type: "Strength",
-    bodyParts: "Legs",
-    exercises: [
-      {
-        id: "1",
-        exerciseType: "lift",
-        bodyPart: "Quads",
-        name: "Back Squat",
-        sets: 3,
-        reps: 5,
-        weight: 100,
-        seat: "—",
-      },
-      {
-        id: "2",
-        exerciseType: "lift",
-        bodyPart: "Hamstrings",
-        name: "Romanian DL",
-        sets: 3,
-        reps: 8,
-        weight: 80,
-        seat: "—",
-      },
-    ],
-  },
-  Sat: {
-    type: "Cardio",
-    bodyParts: "Tempo run",
-    exercises: [
-      { id: "1", exerciseType: "cardio", name: "Outdoor run", pace: 5.33, duration: 25, bpm: 162 },
-    ],
-  },
-  Sun: { type: "Rest", bodyParts: "Mobility & walk", exercises: [] },
+const restDay: FitnessDay = { type: "Rest", bodyParts: "", exercises: [] };
+
+// Seed shown only until the first load resolves; real first-time users get the
+// Onboarding Flow instead (loadFitness returning null means no Training Week).
+const EMPTY_WEEK: FitnessWeek = {
+  Mon: restDay,
+  Tue: restDay,
+  Wed: restDay,
+  Thu: restDay,
+  Fri: restDay,
+  Sat: restDay,
+  Sun: restDay,
 };
 
 const TYPE_TONE: Record<DayType, "primary" | "muted" | "success" | "warn"> = {
@@ -184,11 +90,41 @@ function downloadCSV(csv: string, filename: string) {
 }
 
 function FitnessPage() {
-  const { data: week, setData: setWeek } = useUserData<FitnessWeek>("fitness", DEFAULT);
+  const {
+    data: week,
+    setData: setWeek,
+    loading,
+    exists,
+    reload,
+  } = useUserData<FitnessWeek>("fitness", EMPTY_WEEK);
   const { unit, setUnit } = useWeightUnit();
+  const getTemplates = useServerFn(getWorkoutTemplates);
+  const applyTemplate = useServerFn(applyWorkoutTemplate);
+  const save = useServerFn(saveUserData);
 
   const update = (day: Weekday, patch: Partial<FitnessDay>) =>
     setWeek((w) => ({ ...w, [day]: { ...w[day], ...patch } }));
+
+  if (loading) {
+    return <div className="grid min-h-[40vh] place-items-center text-tertiary">Loading…</div>;
+  }
+
+  // First visit: no Training Week yet — run the Onboarding Flow full-page.
+  if (!exists) {
+    return (
+      <OnboardingWizard
+        loadTemplates={(goal) => getTemplates({ data: { goal } })}
+        onApplyTemplate={async (templateId) => {
+          await applyTemplate({ data: { templateId } });
+          reload();
+        }}
+        onCustom={async () => {
+          await save({ data: { key: "fitness", data: EMPTY_WEEK } });
+          reload();
+        }}
+      />
+    );
+  }
 
   return (
     <>

@@ -468,6 +468,139 @@ export type Database = {
         };
         Relationships: [];
       };
+      workout_template_days: {
+        Row: {
+          created_at: string;
+          id: string;
+          summary: string;
+          template_id: string;
+          type: Database["public"]["Enums"]["workout_type"];
+          updated_at: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          summary?: string;
+          template_id: string;
+          type?: Database["public"]["Enums"]["workout_type"];
+          updated_at?: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          summary?: string;
+          template_id?: string;
+          type?: Database["public"]["Enums"]["workout_type"];
+          updated_at?: string;
+          weekday?: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workout_template_days_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "workout_templates";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workout_template_exercises: {
+        Row: {
+          body_part: string | null;
+          bpm: number | null;
+          created_at: string;
+          duration_min: number | null;
+          exercise_type: Database["public"]["Enums"]["exercise_type_enum"];
+          id: string;
+          name: string;
+          pace: number | null;
+          position: number;
+          reps: number | null;
+          seat: string | null;
+          sets: number | null;
+          template_day_id: string;
+          updated_at: string;
+          weight: number | null;
+        };
+        Insert: {
+          body_part?: string | null;
+          bpm?: number | null;
+          created_at?: string;
+          duration_min?: number | null;
+          exercise_type: Database["public"]["Enums"]["exercise_type_enum"];
+          id?: string;
+          name?: string;
+          pace?: number | null;
+          position?: number;
+          reps?: number | null;
+          seat?: string | null;
+          sets?: number | null;
+          template_day_id: string;
+          updated_at?: string;
+          weight?: number | null;
+        };
+        Update: {
+          body_part?: string | null;
+          bpm?: number | null;
+          created_at?: string;
+          duration_min?: number | null;
+          exercise_type?: Database["public"]["Enums"]["exercise_type_enum"];
+          id?: string;
+          name?: string;
+          pace?: number | null;
+          position?: number;
+          reps?: number | null;
+          seat?: string | null;
+          sets?: number | null;
+          template_day_id?: string;
+          updated_at?: string;
+          weight?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workout_template_exercises_template_day_id_fkey";
+            columns: ["template_day_id"];
+            isOneToOne: false;
+            referencedRelation: "workout_template_days";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workout_templates: {
+        Row: {
+          created_at: string;
+          description: string;
+          goal: Database["public"]["Enums"]["workout_goal"];
+          id: string;
+          is_public: boolean;
+          name: string;
+          owner_user_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string;
+          goal: Database["public"]["Enums"]["workout_goal"];
+          id?: string;
+          is_public?: boolean;
+          name: string;
+          owner_user_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string;
+          goal?: Database["public"]["Enums"]["workout_goal"];
+          id?: string;
+          is_public?: boolean;
+          name?: string;
+          owner_user_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -480,6 +613,7 @@ export type Database = {
       life_area: "personal" | "career" | "work";
       task_bucket: "this_week" | "later";
       weekday_enum: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+      workout_goal: "Hypertrophy" | "Cardio";
       workout_type: "Strength" | "Hypertrophy" | "Cardio" | "Rest";
     };
     CompositeTypes: {
@@ -613,6 +747,7 @@ export const Constants = {
       life_area: ["personal", "career", "work"],
       task_bucket: ["this_week", "later"],
       weekday_enum: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      workout_goal: ["Hypertrophy", "Cardio"],
       workout_type: ["Strength", "Hypertrophy", "Cardio", "Rest"],
     },
   },

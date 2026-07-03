@@ -16,19 +16,23 @@ export function useUserData<T>(key: string, seed: T) {
   const userId = user?.id;
   const [data, setData] = useState<T>(seed);
   const [loading, setLoading] = useState<boolean>(!!userId);
+  // Whether a persisted row exists for this user+key (false until first load).
+  const [exists, setExists] = useState(false);
+  const [reloadNonce, setReloadNonce] = useState(0);
   const loadedRef = useRef(false);
   const skipNextSaveRef = useRef(true);
 
   const load = useServerFn(getUserData);
   const save = useServerFn(saveUserData);
 
-  // Load on mount / user change.
+  // Load on mount / user change / reload().
   useEffect(() => {
     let cancelled = false;
     loadedRef.current = false;
     skipNextSaveRef.current = true;
     if (!userId) {
       setData(seed);
+      setExists(false);
       setLoading(false);
       return;
     }
@@ -38,6 +42,7 @@ export function useUserData<T>(key: string, seed: T) {
         if (cancelled) return;
         const d = (res as { data?: unknown } | null)?.data;
         setData((d as T) ?? seed);
+        setExists(d != null);
         loadedRef.current = true;
         setLoading(false);
       })
@@ -51,7 +56,7 @@ export function useUserData<T>(key: string, seed: T) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, key]);
+  }, [userId, key, reloadNonce]);
 
   // Debounced save when data changes after load.
   useEffect(() => {
@@ -69,5 +74,7 @@ export function useUserData<T>(key: string, seed: T) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, userId, key]);
 
-  return { data, setData, loading } as const;
+  const reload = () => setReloadNonce((n) => n + 1);
+
+  return { data, setData, loading, exists, reload } as const;
 }
