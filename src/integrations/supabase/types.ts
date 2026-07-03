@@ -1,613 +1,754 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
-      fitness_cardio: {
-        Row: {
-          bpm: number
-          created_at: string
-          day_id: string
-          duration_min: number
-          id: string
-          name: string
-          pace: string
-          position: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          bpm?: number
-          created_at?: string
-          day_id: string
-          duration_min?: number
-          id?: string
-          name?: string
-          pace?: string
-          position?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          bpm?: number
-          created_at?: string
-          day_id?: string
-          duration_min?: number
-          id?: string
-          name?: string
-          pace?: string
-          position?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fitness_cardio_day_id_fkey"
-            columns: ["day_id"]
-            isOneToOne: false
-            referencedRelation: "fitness_days"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       fitness_days: {
         Row: {
-          created_at: string
-          id: string
-          summary: string
-          type: Database["public"]["Enums"]["workout_type"]
-          updated_at: string
-          user_id: string
-          weekday: Database["public"]["Enums"]["weekday_enum"]
-        }
+          created_at: string;
+          id: string;
+          summary: string;
+          type: Database["public"]["Enums"]["workout_type"];
+          updated_at: string;
+          user_id: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          summary?: string
-          type?: Database["public"]["Enums"]["workout_type"]
-          updated_at?: string
-          user_id: string
-          weekday: Database["public"]["Enums"]["weekday_enum"]
-        }
+          created_at?: string;
+          id?: string;
+          summary?: string;
+          type?: Database["public"]["Enums"]["workout_type"];
+          updated_at?: string;
+          user_id: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
         Update: {
-          created_at?: string
-          id?: string
-          summary?: string
-          type?: Database["public"]["Enums"]["workout_type"]
-          updated_at?: string
-          user_id?: string
-          weekday?: Database["public"]["Enums"]["weekday_enum"]
-        }
-        Relationships: []
-      }
-      fitness_lifts: {
+          created_at?: string;
+          id?: string;
+          summary?: string;
+          type?: Database["public"]["Enums"]["workout_type"];
+          updated_at?: string;
+          user_id?: string;
+          weekday?: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Relationships: [];
+      };
+      fitness_exercises: {
         Row: {
-          body_part: string
-          created_at: string
-          day_id: string
-          id: string
-          name: string
-          position: number
-          reps: number
-          seat: string
-          updated_at: string
-          user_id: string
-          weight: number
-        }
+          body_part: string | null;
+          bpm: number | null;
+          created_at: string;
+          day_id: string;
+          duration_min: number | null;
+          exercise_type: Database["public"]["Enums"]["exercise_type_enum"];
+          id: string;
+          name: string;
+          pace: number | null;
+          position: number;
+          reps: number | null;
+          seat: string | null;
+          sets: number | null;
+          updated_at: string;
+          user_id: string;
+          weight: number | null;
+        };
         Insert: {
-          body_part?: string
-          created_at?: string
-          day_id: string
-          id?: string
-          name?: string
-          position?: number
-          reps?: number
-          seat?: string
-          updated_at?: string
-          user_id: string
-          weight?: number
-        }
+          body_part?: string | null;
+          bpm?: number | null;
+          created_at?: string;
+          day_id: string;
+          duration_min?: number | null;
+          exercise_type: Database["public"]["Enums"]["exercise_type_enum"];
+          id?: string;
+          name?: string;
+          pace?: number | null;
+          position?: number;
+          reps?: number | null;
+          seat?: string | null;
+          sets?: number | null;
+          updated_at?: string;
+          user_id: string;
+          weight?: number | null;
+        };
         Update: {
-          body_part?: string
-          created_at?: string
-          day_id?: string
-          id?: string
-          name?: string
-          position?: number
-          reps?: number
-          seat?: string
-          updated_at?: string
-          user_id?: string
-          weight?: number
-        }
+          body_part?: string | null;
+          bpm?: number | null;
+          created_at?: string;
+          day_id?: string;
+          duration_min?: number | null;
+          exercise_type?: Database["public"]["Enums"]["exercise_type_enum"];
+          id?: string;
+          name?: string;
+          pace?: number | null;
+          position?: number;
+          reps?: number | null;
+          seat?: string | null;
+          sets?: number | null;
+          updated_at?: string;
+          user_id?: string;
+          weight?: number | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "fitness_lifts_day_id_fkey"
-            columns: ["day_id"]
-            isOneToOne: false
-            referencedRelation: "fitness_days"
-            referencedColumns: ["id"]
+            foreignKeyName: "fitness_exercises_day_id_fkey";
+            columns: ["day_id"];
+            isOneToOne: false;
+            referencedRelation: "fitness_days";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       life_goals: {
         Row: {
-          area: Database["public"]["Enums"]["life_area"]
-          created_at: string
-          horizon: string
-          id: string
-          notes: string
-          position: number
-          progress: number
-          title: string
-          updated_at: string
-          user_id: string
-        }
+          area: Database["public"]["Enums"]["life_area"];
+          created_at: string;
+          horizon: string;
+          id: string;
+          notes: string;
+          position: number;
+          progress: number;
+          title: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          area: Database["public"]["Enums"]["life_area"]
-          created_at?: string
-          horizon?: string
-          id?: string
-          notes?: string
-          position?: number
-          progress?: number
-          title?: string
-          updated_at?: string
-          user_id: string
-        }
+          area: Database["public"]["Enums"]["life_area"];
+          created_at?: string;
+          horizon?: string;
+          id?: string;
+          notes?: string;
+          position?: number;
+          progress?: number;
+          title?: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          area?: Database["public"]["Enums"]["life_area"]
-          created_at?: string
-          horizon?: string
-          id?: string
-          notes?: string
-          position?: number
-          progress?: number
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+          area?: Database["public"]["Enums"]["life_area"];
+          created_at?: string;
+          horizon?: string;
+          id?: string;
+          notes?: string;
+          position?: number;
+          progress?: number;
+          title?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       life_tasks: {
         Row: {
-          area: Database["public"]["Enums"]["life_area"]
-          bucket: Database["public"]["Enums"]["task_bucket"]
-          created_at: string
-          done: boolean
-          id: string
-          position: number
-          text: string
-          updated_at: string
-          user_id: string
-        }
+          area: Database["public"]["Enums"]["life_area"];
+          bucket: Database["public"]["Enums"]["task_bucket"];
+          created_at: string;
+          done: boolean;
+          id: string;
+          position: number;
+          text: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          area: Database["public"]["Enums"]["life_area"]
-          bucket: Database["public"]["Enums"]["task_bucket"]
-          created_at?: string
-          done?: boolean
-          id?: string
-          position?: number
-          text?: string
-          updated_at?: string
-          user_id: string
-        }
+          area: Database["public"]["Enums"]["life_area"];
+          bucket: Database["public"]["Enums"]["task_bucket"];
+          created_at?: string;
+          done?: boolean;
+          id?: string;
+          position?: number;
+          text?: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          area?: Database["public"]["Enums"]["life_area"]
-          bucket?: Database["public"]["Enums"]["task_bucket"]
-          created_at?: string
-          done?: boolean
-          id?: string
-          position?: number
-          text?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+          area?: Database["public"]["Enums"]["life_area"];
+          bucket?: Database["public"]["Enums"]["task_bucket"];
+          created_at?: string;
+          done?: boolean;
+          id?: string;
+          position?: number;
+          text?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       meal_days: {
         Row: {
-          calorie_goal: number
-          created_at: string
-          id: string
-          updated_at: string
-          user_id: string
-          weekday: Database["public"]["Enums"]["weekday_enum"]
-        }
+          calorie_goal: number;
+          created_at: string;
+          id: string;
+          updated_at: string;
+          user_id: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
         Insert: {
-          calorie_goal?: number
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id: string
-          weekday: Database["public"]["Enums"]["weekday_enum"]
-        }
+          calorie_goal?: number;
+          created_at?: string;
+          id?: string;
+          updated_at?: string;
+          user_id: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
         Update: {
-          calorie_goal?: number
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id?: string
-          weekday?: Database["public"]["Enums"]["weekday_enum"]
-        }
-        Relationships: []
-      }
+          calorie_goal?: number;
+          created_at?: string;
+          id?: string;
+          updated_at?: string;
+          user_id?: string;
+          weekday?: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Relationships: [];
+      };
       meal_entries: {
         Row: {
-          calories: number
-          carb_g: number
-          created_at: string
-          day_id: string
-          fat_g: number
-          id: string
-          name: string
-          position: number
-          protein_g: number
-          updated_at: string
-          user_id: string
-        }
+          calories: number;
+          carb_g: number;
+          created_at: string;
+          day_id: string;
+          fat_g: number;
+          id: string;
+          name: string;
+          position: number;
+          protein_g: number;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          calories?: number
-          carb_g?: number
-          created_at?: string
-          day_id: string
-          fat_g?: number
-          id?: string
-          name?: string
-          position?: number
-          protein_g?: number
-          updated_at?: string
-          user_id: string
-        }
+          calories?: number;
+          carb_g?: number;
+          created_at?: string;
+          day_id: string;
+          fat_g?: number;
+          id?: string;
+          name?: string;
+          position?: number;
+          protein_g?: number;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          calories?: number
-          carb_g?: number
-          created_at?: string
-          day_id?: string
-          fat_g?: number
-          id?: string
-          name?: string
-          position?: number
-          protein_g?: number
-          updated_at?: string
-          user_id?: string
-        }
+          calories?: number;
+          carb_g?: number;
+          created_at?: string;
+          day_id?: string;
+          fat_g?: number;
+          id?: string;
+          name?: string;
+          position?: number;
+          protein_g?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "meal_entries_day_id_fkey"
-            columns: ["day_id"]
-            isOneToOne: false
-            referencedRelation: "meal_days"
-            referencedColumns: ["id"]
+            foreignKeyName: "meal_entries_day_id_fkey";
+            columns: ["day_id"];
+            isOneToOne: false;
+            referencedRelation: "meal_days";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       mental_actions: {
         Row: {
-          created_at: string
-          day_id: string
-          done: boolean
-          id: string
-          position: number
-          text: string
-          updated_at: string
-          user_id: string
-        }
+          created_at: string;
+          day_id: string;
+          done: boolean;
+          id: string;
+          position: number;
+          text: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          day_id: string
-          done?: boolean
-          id?: string
-          position?: number
-          text?: string
-          updated_at?: string
-          user_id: string
-        }
+          created_at?: string;
+          day_id: string;
+          done?: boolean;
+          id?: string;
+          position?: number;
+          text?: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          day_id?: string
-          done?: boolean
-          id?: string
-          position?: number
-          text?: string
-          updated_at?: string
-          user_id?: string
-        }
+          created_at?: string;
+          day_id?: string;
+          done?: boolean;
+          id?: string;
+          position?: number;
+          text?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "mental_actions_day_id_fkey"
-            columns: ["day_id"]
-            isOneToOne: false
-            referencedRelation: "mental_days"
-            referencedColumns: ["id"]
+            foreignKeyName: "mental_actions_day_id_fkey";
+            columns: ["day_id"];
+            isOneToOne: false;
+            referencedRelation: "mental_days";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       mental_days: {
         Row: {
-          created_at: string
-          happiness: number
-          id: string
-          notes: string
-          productivity: number
-          stress: number
-          therapy: string
-          updated_at: string
-          user_id: string
-          weekday: Database["public"]["Enums"]["weekday_enum"]
-        }
+          created_at: string;
+          happiness: number;
+          id: string;
+          notes: string;
+          productivity: number;
+          stress: number;
+          therapy: string;
+          updated_at: string;
+          user_id: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
         Insert: {
-          created_at?: string
-          happiness?: number
-          id?: string
-          notes?: string
-          productivity?: number
-          stress?: number
-          therapy?: string
-          updated_at?: string
-          user_id: string
-          weekday: Database["public"]["Enums"]["weekday_enum"]
-        }
+          created_at?: string;
+          happiness?: number;
+          id?: string;
+          notes?: string;
+          productivity?: number;
+          stress?: number;
+          therapy?: string;
+          updated_at?: string;
+          user_id: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
         Update: {
-          created_at?: string
-          happiness?: number
-          id?: string
-          notes?: string
-          productivity?: number
-          stress?: number
-          therapy?: string
-          updated_at?: string
-          user_id?: string
-          weekday?: Database["public"]["Enums"]["weekday_enum"]
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          happiness?: number;
+          id?: string;
+          notes?: string;
+          productivity?: number;
+          stress?: number;
+          therapy?: string;
+          updated_at?: string;
+          user_id?: string;
+          weekday?: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Relationships: [];
+      };
       sleep_days: {
         Row: {
-          bedtime: string
-          created_at: string
-          id: string
-          updated_at: string
-          user_id: string
-          wake_time: string
-          weekday: Database["public"]["Enums"]["weekday_enum"]
-        }
+          bedtime: string;
+          created_at: string;
+          id: string;
+          updated_at: string;
+          user_id: string;
+          wake_time: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
         Insert: {
-          bedtime?: string
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id: string
-          wake_time?: string
-          weekday: Database["public"]["Enums"]["weekday_enum"]
-        }
+          bedtime?: string;
+          created_at?: string;
+          id?: string;
+          updated_at?: string;
+          user_id: string;
+          wake_time?: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
         Update: {
-          bedtime?: string
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id?: string
-          wake_time?: string
-          weekday?: Database["public"]["Enums"]["weekday_enum"]
-        }
-        Relationships: []
-      }
+          bedtime?: string;
+          created_at?: string;
+          id?: string;
+          updated_at?: string;
+          user_id?: string;
+          wake_time?: string;
+          weekday?: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Relationships: [];
+      };
       sleep_interruptions: {
         Row: {
-          at: string
-          created_at: string
-          day_id: string
-          id: string
-          position: number
-          reason: string
-          updated_at: string
-          user_id: string
-        }
+          at: string;
+          created_at: string;
+          day_id: string;
+          id: string;
+          position: number;
+          reason: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          at?: string
-          created_at?: string
-          day_id: string
-          id?: string
-          position?: number
-          reason?: string
-          updated_at?: string
-          user_id: string
-        }
+          at?: string;
+          created_at?: string;
+          day_id: string;
+          id?: string;
+          position?: number;
+          reason?: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          at?: string
-          created_at?: string
-          day_id?: string
-          id?: string
-          position?: number
-          reason?: string
-          updated_at?: string
-          user_id?: string
-        }
+          at?: string;
+          created_at?: string;
+          day_id?: string;
+          id?: string;
+          position?: number;
+          reason?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "sleep_interruptions_day_id_fkey"
-            columns: ["day_id"]
-            isOneToOne: false
-            referencedRelation: "sleep_days"
-            referencedColumns: ["id"]
+            foreignKeyName: "sleep_interruptions_day_id_fkey";
+            columns: ["day_id"];
+            isOneToOne: false;
+            referencedRelation: "sleep_days";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       user_data: {
         Row: {
-          data: Json
-          key: string
-          updated_at: string
-          user_id: string
-        }
+          data: Json;
+          key: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          data?: Json
-          key: string
-          updated_at?: string
-          user_id: string
-        }
+          data?: Json;
+          key: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          data?: Json
-          key?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-    }
+          data?: Json;
+          key?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      user_preferences: {
+        Row: {
+          created_at: string;
+          updated_at: string;
+          user_id: string;
+          weight_unit: string;
+        };
+        Insert: {
+          created_at?: string;
+          updated_at?: string;
+          user_id: string;
+          weight_unit?: string;
+        };
+        Update: {
+          created_at?: string;
+          updated_at?: string;
+          user_id?: string;
+          weight_unit?: string;
+        };
+        Relationships: [];
+      };
+      workout_template_days: {
+        Row: {
+          created_at: string;
+          id: string;
+          summary: string;
+          template_id: string;
+          type: Database["public"]["Enums"]["workout_type"];
+          updated_at: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          summary?: string;
+          template_id: string;
+          type?: Database["public"]["Enums"]["workout_type"];
+          updated_at?: string;
+          weekday: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          summary?: string;
+          template_id?: string;
+          type?: Database["public"]["Enums"]["workout_type"];
+          updated_at?: string;
+          weekday?: Database["public"]["Enums"]["weekday_enum"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workout_template_days_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "workout_templates";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workout_template_exercises: {
+        Row: {
+          body_part: string | null;
+          bpm: number | null;
+          created_at: string;
+          duration_min: number | null;
+          exercise_type: Database["public"]["Enums"]["exercise_type_enum"];
+          id: string;
+          name: string;
+          pace: number | null;
+          position: number;
+          reps: number | null;
+          seat: string | null;
+          sets: number | null;
+          template_day_id: string;
+          updated_at: string;
+          weight: number | null;
+        };
+        Insert: {
+          body_part?: string | null;
+          bpm?: number | null;
+          created_at?: string;
+          duration_min?: number | null;
+          exercise_type: Database["public"]["Enums"]["exercise_type_enum"];
+          id?: string;
+          name?: string;
+          pace?: number | null;
+          position?: number;
+          reps?: number | null;
+          seat?: string | null;
+          sets?: number | null;
+          template_day_id: string;
+          updated_at?: string;
+          weight?: number | null;
+        };
+        Update: {
+          body_part?: string | null;
+          bpm?: number | null;
+          created_at?: string;
+          duration_min?: number | null;
+          exercise_type?: Database["public"]["Enums"]["exercise_type_enum"];
+          id?: string;
+          name?: string;
+          pace?: number | null;
+          position?: number;
+          reps?: number | null;
+          seat?: string | null;
+          sets?: number | null;
+          template_day_id?: string;
+          updated_at?: string;
+          weight?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workout_template_exercises_template_day_id_fkey";
+            columns: ["template_day_id"];
+            isOneToOne: false;
+            referencedRelation: "workout_template_days";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workout_templates: {
+        Row: {
+          created_at: string;
+          description: string;
+          goal: Database["public"]["Enums"]["workout_goal"];
+          id: string;
+          is_public: boolean;
+          name: string;
+          owner_user_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string;
+          goal: Database["public"]["Enums"]["workout_goal"];
+          id?: string;
+          is_public?: boolean;
+          name: string;
+          owner_user_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string;
+          goal?: Database["public"]["Enums"]["workout_goal"];
+          id?: string;
+          is_public?: boolean;
+          name?: string;
+          owner_user_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Enums: {
-      life_area: "personal" | "career" | "work"
-      task_bucket: "this_week" | "later"
-      weekday_enum: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"
-      workout_type: "Strength" | "Hypertrophy" | "Cardio" | "Rest"
-    }
+      exercise_type_enum: "lift" | "cardio";
+      life_area: "personal" | "career" | "work";
+      task_bucket: "this_week" | "later";
+      weekday_enum: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+      workout_goal: "Hypertrophy" | "Cardio";
+      workout_type: "Strength" | "Hypertrophy" | "Cardio" | "Rest";
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
+      exercise_type_enum: ["lift", "cardio"],
       life_area: ["personal", "career", "work"],
       task_bucket: ["this_week", "later"],
       weekday_enum: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      workout_goal: ["Hypertrophy", "Cardio"],
       workout_type: ["Strength", "Hypertrophy", "Cardio", "Rest"],
     },
   },
-} as const
+} as const;

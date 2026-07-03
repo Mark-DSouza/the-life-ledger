@@ -1,10 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Trash2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Download, Plus } from "lucide-react";
 import { RequireAuth, PageHeader } from "@/components/require-auth";
 import { ExpandableCard, Pill } from "@/components/expandable-card";
 import { InlineEdit } from "@/components/inline-edit";
+import { ExerciseRow } from "@/components/exercise-row";
+import { ImportCsvButton } from "@/components/import-csv-button";
+import { OnboardingWizard } from "@/components/onboarding-wizard";
+import { WeightUnitToggle } from "@/components/weight-unit-toggle";
 import { Button } from "@/components/ui/button";
 import { useUserData, WEEKDAYS, type Weekday } from "@/lib/storage";
+import { useWeightUnit } from "@/lib/preferences";
+import { exportFitnessCSV } from "@/lib/fitness-csv";
+import { saveUserData } from "@/lib/user-data.functions";
+import { applyWorkoutTemplate, getWorkoutTemplates } from "@/lib/fitness-templates.functions";
+import type { Exercise, FitnessDay, FitnessWeek } from "@/lib/fitness-data";
 
 export const Route = createFileRoute("/fitness")({
   head: () => ({
@@ -23,104 +33,118 @@ export const Route = createFileRoute("/fitness")({
   ),
 });
 
-type WorkoutType = "Strength" | "Hypertrophy" | "Cardio" | "Rest";
+type DayType = FitnessDay["type"];
 
-type LiftExercise = {
-  id: string;
-  bodyPart: string;
-  name: string;
-  reps: number;
-  weight: number;
-  seat: string;
+const restDay: FitnessDay = { type: "Rest", bodyParts: "", exercises: [] };
+
+// Seed shown only until the first load resolves; real first-time users get the
+// Onboarding Flow instead (loadFitness returning null means no Training Week).
+const EMPTY_WEEK: FitnessWeek = {
+  Mon: restDay,
+  Tue: restDay,
+  Wed: restDay,
+  Thu: restDay,
+  Fri: restDay,
+  Sat: restDay,
+  Sun: restDay,
 };
 
-type CardioBlock = {
-  id: string;
-  name: string;
-  pace: string;
-  duration: number; // minutes
-  bpm: number;
-};
-
-type DayData = {
-  type: WorkoutType;
-  bodyParts: string; // "Biceps - Shoulders"
-  lifts: LiftExercise[];
-  cardio: CardioBlock[];
-};
-
-const DEFAULT: Record<Weekday, DayData> = {
-  Mon: {
-    type: "Hypertrophy",
-    bodyParts: "Chest - Triceps",
-    lifts: [
-      { id: "1", bodyPart: "Chest", name: "Bench Press", reps: 10, weight: 60, seat: "—" },
-      { id: "2", bodyPart: "Triceps", name: "Cable Pushdown", reps: 12, weight: 25, seat: "—" },
-    ],
-    cardio: [],
-  },
-  Tue: {
-    type: "Cardio",
-    bodyParts: "Zone 2 - Easy",
-    lifts: [],
-    cardio: [{ id: "1", name: "Treadmill", pace: "6:30/km", duration: 35, bpm: 138 }],
-  },
-  Wed: {
-    type: "Strength",
-    bodyParts: "Back - Biceps",
-    lifts: [
-      { id: "1", bodyPart: "Back", name: "Deadlift", reps: 5, weight: 110, seat: "—" },
-      { id: "2", bodyPart: "Biceps", name: "Barbell Curl", reps: 8, weight: 30, seat: "—" },
-    ],
-    cardio: [],
-  },
-  Thu: {
-    type: "Hypertrophy",
-    bodyParts: "Shoulders - Abs",
-    lifts: [
-      { id: "1", bodyPart: "Shoulders", name: "Overhead Press", reps: 10, weight: 35, seat: "5" },
-    ],
-    cardio: [],
-  },
-  Fri: {
-    type: "Strength",
-    bodyParts: "Legs",
-    lifts: [
-      { id: "1", bodyPart: "Quads", name: "Back Squat", reps: 5, weight: 100, seat: "—" },
-      { id: "2", bodyPart: "Hamstrings", name: "Romanian DL", reps: 8, weight: 80, seat: "—" },
-    ],
-    cardio: [],
-  },
-  Sat: {
-    type: "Cardio",
-    bodyParts: "Tempo run",
-    lifts: [],
-    cardio: [{ id: "1", name: "Outdoor run", pace: "5:20/km", duration: 25, bpm: 162 }],
-  },
-  Sun: { type: "Rest", bodyParts: "Mobility & walk", lifts: [], cardio: [] },
-};
-
-const TYPE_TONE: Record<WorkoutType, "primary" | "muted" | "success" | "warn"> = {
+const TYPE_TONE: Record<DayType, "primary" | "muted" | "success" | "warn"> = {
   Strength: "primary",
   Hypertrophy: "warn",
   Cardio: "success",
   Rest: "muted",
 };
 
-function FitnessPage() {
-  const { data: week, setData: setWeek } = useUserData<Record<Weekday, DayData>>(
-    "fitness",
-    DEFAULT,
-  );
+function newLift(): Exercise {
+  return {
+    id: crypto.randomUUID(),
+    exerciseType: "lift",
+    bodyPart: "—",
+    name: "New exercise",
+    sets: 3,
+    reps: 10,
+    weight: 20,
+    seat: "—",
+  };
+}
 
-  const update = (day: Weekday, patch: Partial<DayData>) =>
+function newCardio(): Exercise {
+  return {
+    id: crypto.randomUUID(),
+    exerciseType: "cardio",
+    name: "New cardio",
+    pace: 6.5,
+    duration: 20,
+    bpm: 130,
+  };
+}
+
+function downloadCSV(csv: string, filename: string) {
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function FitnessPage() {
+  const {
+    data: week,
+    setData: setWeek,
+    loading,
+    exists,
+    reload,
+  } = useUserData<FitnessWeek>("fitness", EMPTY_WEEK);
+  const { unit, setUnit } = useWeightUnit();
+  const getTemplates = useServerFn(getWorkoutTemplates);
+  const applyTemplate = useServerFn(applyWorkoutTemplate);
+  const save = useServerFn(saveUserData);
+
+  const update = (day: Weekday, patch: Partial<FitnessDay>) =>
     setWeek((w) => ({ ...w, [day]: { ...w[day], ...patch } }));
+
+  if (loading) {
+    return <div className="grid min-h-[40vh] place-items-center text-tertiary">Loading…</div>;
+  }
+
+  // First visit: no Training Week yet — run the Onboarding Flow full-page.
+  if (!exists) {
+    return (
+      <OnboardingWizard
+        loadTemplates={(goal) => getTemplates({ data: { goal } })}
+        onApplyTemplate={async (templateId) => {
+          await applyTemplate({ data: { templateId } });
+          reload();
+        }}
+        onCustom={async () => {
+          await save({ data: { key: "fitness", data: EMPTY_WEEK } });
+          reload();
+        }}
+      />
+    );
+  }
 
   return (
     <>
       <PageHeader
         title="Fitness"
         subtitle="Plan workouts for every day of the week. Tap a card to expand."
+        right={
+          <div className="flex items-center gap-2">
+            <ImportCsvButton onImport={(w) => setWeek(w)} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadCSV(exportFitnessCSV(week), "fitness-week.csv")}
+              className="border-border bg-card hover:bg-card-nested"
+            >
+              <Download className="h-3.5 w-3.5" /> Export CSV
+            </Button>
+            <WeightUnitToggle value={unit} onChange={setUnit} />
+          </div>
+        }
       />
       <div className="space-y-3">
         {WEEKDAYS.map((day) => {
@@ -146,10 +170,10 @@ function FitnessPage() {
                   <label className="text-tertiary">Type</label>
                   <select
                     value={d.type}
-                    onChange={(e) => update(day, { type: e.target.value as WorkoutType })}
+                    onChange={(e) => update(day, { type: e.target.value as DayType })}
                     className="rounded-md border border-border bg-card px-2 py-1 text-sm focus:border-primary/40 focus:outline-none"
                   >
-                    {(["Strength", "Hypertrophy", "Cardio", "Rest"] as WorkoutType[]).map((t) => (
+                    {(["Strength", "Hypertrophy", "Cardio", "Rest"] as DayType[]).map((t) => (
                       <option key={t} value={t}>
                         {t}
                       </option>
@@ -163,201 +187,43 @@ function FitnessPage() {
                   />
                 </div>
 
-                {d.type === "Cardio" ? (
-                  <div className="space-y-2">
-                    {d.cardio.map((c, idx) => (
-                      <div
-                        key={c.id}
-                        className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-border bg-card p-3 text-sm"
-                      >
-                        <InlineEdit
-                          value={c.name}
-                          onChange={(v) =>
-                            update(day, {
-                              cardio: d.cardio.map((x, i) => (i === idx ? { ...x, name: v } : x)),
-                            })
-                          }
-                          placeholder="Exercise"
-                        />
-                        <span className="text-tertiary">·</span>
-                        <span>
-                          Pace{" "}
-                          <InlineEdit
-                            value={c.pace}
-                            onChange={(v) =>
-                              update(day, {
-                                cardio: d.cardio.map((x, i) => (i === idx ? { ...x, pace: v } : x)),
-                              })
-                            }
-                          />
-                        </span>
-                        <span>
-                          Duration{" "}
-                          <InlineEdit
-                            type="number"
-                            value={c.duration}
-                            onChange={(v) =>
-                              update(day, {
-                                cardio: d.cardio.map((x, i) =>
-                                  i === idx ? { ...x, duration: Number(v) } : x,
-                                ),
-                              })
-                            }
-                            suffix="min"
-                            width="4ch"
-                          />
-                        </span>
-                        <span>
-                          BPM{" "}
-                          <InlineEdit
-                            type="number"
-                            value={c.bpm}
-                            onChange={(v) =>
-                              update(day, {
-                                cardio: d.cardio.map((x, i) =>
-                                  i === idx ? { ...x, bpm: Number(v) } : x,
-                                ),
-                              })
-                            }
-                            width="4ch"
-                          />
-                        </span>
-                        <button
-                          onClick={() =>
-                            update(day, { cardio: d.cardio.filter((_, i) => i !== idx) })
-                          }
-                          className="ml-auto text-tertiary hover:text-destructive"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        update(day, {
-                          cardio: [
-                            ...d.cardio,
-                            {
-                              id: crypto.randomUUID(),
-                              name: "New cardio",
-                              pace: "—",
-                              duration: 20,
-                              bpm: 130,
-                            },
-                          ],
-                        })
-                      }
-                      className="border-border bg-card hover:bg-card-nested"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Add cardio
-                    </Button>
-                  </div>
-                ) : d.type === "Rest" ? (
+                {d.type === "Rest" ? (
                   <p className="text-sm text-muted-foreground">Rest day. Take it easy.</p>
                 ) : (
                   <div className="space-y-2">
-                    {d.lifts.map((ex, idx) => (
-                      <div
-                        key={ex.id}
-                        className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-border bg-card p-3 text-sm"
-                      >
-                        <span className="text-tertiary">Body</span>
-                        <InlineEdit
-                          value={ex.bodyPart}
-                          onChange={(v) =>
-                            update(day, {
-                              lifts: d.lifts.map((x, i) => (i === idx ? { ...x, bodyPart: v } : x)),
-                            })
-                          }
-                        />
-                        <span className="text-tertiary">·</span>
-                        <span className="text-tertiary">Exercise</span>
-                        <InlineEdit
-                          value={ex.name}
-                          onChange={(v) =>
-                            update(day, {
-                              lifts: d.lifts.map((x, i) => (i === idx ? { ...x, name: v } : x)),
-                            })
-                          }
-                        />
-                        <span>
-                          Reps{" "}
-                          <InlineEdit
-                            type="number"
-                            value={ex.reps}
-                            onChange={(v) =>
-                              update(day, {
-                                lifts: d.lifts.map((x, i) =>
-                                  i === idx ? { ...x, reps: Number(v) } : x,
-                                ),
-                              })
-                            }
-                            width="4ch"
-                          />
-                        </span>
-                        <span>
-                          Weight{" "}
-                          <InlineEdit
-                            type="number"
-                            value={ex.weight}
-                            onChange={(v) =>
-                              update(day, {
-                                lifts: d.lifts.map((x, i) =>
-                                  i === idx ? { ...x, weight: Number(v) } : x,
-                                ),
-                              })
-                            }
-                            suffix="kg"
-                            width="5ch"
-                          />
-                        </span>
-                        <span>
-                          Seat{" "}
-                          <InlineEdit
-                            value={ex.seat}
-                            onChange={(v) =>
-                              update(day, {
-                                lifts: d.lifts.map((x, i) => (i === idx ? { ...x, seat: v } : x)),
-                              })
-                            }
-                          />
-                        </span>
-                        <button
-                          onClick={() =>
-                            update(day, { lifts: d.lifts.filter((_, i) => i !== idx) })
-                          }
-                          className="ml-auto text-tertiary hover:text-destructive"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
+                    {d.exercises.map((ex, idx) => (
+                      <ExerciseRow
+                        key={ex.id ?? idx}
+                        exercise={ex}
+                        weightUnit={unit}
+                        onChange={(updated) =>
+                          update(day, {
+                            exercises: d.exercises.map((x, i) => (i === idx ? updated : x)),
+                          })
+                        }
+                        onDelete={() =>
+                          update(day, { exercises: d.exercises.filter((_, i) => i !== idx) })
+                        }
+                      />
                     ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        update(day, {
-                          lifts: [
-                            ...d.lifts,
-                            {
-                              id: crypto.randomUUID(),
-                              bodyPart: "—",
-                              name: "New exercise",
-                              reps: 10,
-                              weight: 20,
-                              seat: "—",
-                            },
-                          ],
-                        })
-                      }
-                      className="border-border bg-card hover:bg-card-nested"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Add exercise
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => update(day, { exercises: [...d.exercises, newLift()] })}
+                        className="border-border bg-card hover:bg-card-nested"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Add lift
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => update(day, { exercises: [...d.exercises, newCardio()] })}
+                        className="border-border bg-card hover:bg-card-nested"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Add cardio
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
