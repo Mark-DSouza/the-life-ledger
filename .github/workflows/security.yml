@@ -1,0 +1,103 @@
+name: Security
+
+# Separate from `ci.yml`, for two reasons. A weekly schedule has no base ref
+# to diff against, so it doesn't fit alongside path-filtered build/test jobs.
+# And CodeQL needs `security-events: write`, which should not be handed to a
+# job that also lints or builds.
+#
+# What gates a pull request is code scanning's own reading of the diff, not
+# this workflow's exit status: the analyze step below uploads SARIF and exits
+# successfully whatever it found, GitHub fingerprints the alerts, and decides
+# which of them the pull request introduced. So two things want requiring on
+# the branch: the `security` job below, which says the analysis ran and the
+# dependency gate passed, and code scanning's own check, which says the diff
+# introduced nothing new.
+
+on:
+  # Not enough on its own: "new versus pre-existing" is computed against the
+  # base branch's analysis, so without a run on `main` there is nothing to be
+  # pre-existing and the first pull request to touch a file inherits
+  # everything already in it.
+  push:
+    branches: [main]
+  pull_request:
+  # A check that only ever reads a diff never looks again at code nobody has
+  # touched since it was written. This run analyses everything, populates the
+  # Security tab, and fails nothing.
+  schedule:
+    - cron: "17 3 * * 1"
+
+concurrency:
+  group: security-${{ github.ref }}
+  # Not plain `true`: a scheduled run's ref is `refs/heads/main`,
+  # indistinguishable from a push to `main`, so `true` would mean any merge
+  # cancels the weekly full analysis silently. Superseding a pull request is
+  # still worth doing; superseding the run that populates the Security tab is
+  # not.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+# Every `uses:` below is pinned to a commit rather than a tag, for the reasons
+# `ci.yml` sets out. Dependabot rewrites the pin and its `# vX.Y.Z` comment
+# together (.github/dependabot.yml).
+
+jobs:
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Scoped to the one job that uploads SARIF.
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: github/codeql-action/init@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+
+      - uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
+        with:
+          category: /language:javascript-typescript
+
+  # The one gate that does not go through SARIF: it reads the pull request's
+  # dependency changes directly and fails when the diff *adds* a package with
+  # a known vulnerability. It only functions on a pull request event, which is
+  # why the scheduled run above has to exist for the CodeQL side.
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      # No checkout: the action reads the pull request's dependency changes
+      # from the API.
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          # The strict end of the scale. This gate can afford it where a
+          # whole-repository scan could not: it fires only on a package the
+          # diff is adding, at the one moment when the cheap fix — a
+          # different version, or a different package — is still on the
+          # table. Everything else (packages already here, CVEs published
+          # later) is Dependabot's.
+          fail-on-severity: low
+
+  # One status to require on the branch, so a skipped job (dependency-review
+  # on a non-pull_request event) does not read as a missing check. `always()`
+  # is what lets this run when an upstream job skips.
+  security:
+    needs: [codeql, dependency-review]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if anything that ran did not pass
+        run: |
+          results="${{ join(needs.*.result, ' ') }}"
+          echo "Upstream results: $results"
+          for result in $results; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "A required job did not pass." >&2
+              exit 1
+            fi
+          done
+          echo "All jobs that ran passed."
