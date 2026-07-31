@@ -84,8 +84,3 @@ VITE_SUPABASE_PUBLISHABLE_KEY=...  # client-side
 ```
 
 `src/server.ts` is the Cloudflare Worker entry; it wraps TanStack Start's bundled SSR entry and adds branded error handling for h3's swallowed 500s.
-
-## gstack
-
-Use /browse from gstack for all web browsing. Never use mcp**claude-in-chrome**\* tools.
-Available skills: /office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /design-shotgun, /design-html, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /open-gstack-browser, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /setup-gbrain, /sync-gbrain, /retro, /investigate, /document-release, /codex, /cso, /autoplan, /pair-agent, /careful, /freeze, /guard, /unfreeze, /gstack-upgrade, /learn.
