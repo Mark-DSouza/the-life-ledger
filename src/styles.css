@@ -55,27 +55,27 @@
   --radius: 0.875rem;
 
   /* Backgrounds */
-  --background: oklch(0.16 0.03 290);            /* #1A1A2E primary screen */
-  --foreground: oklch(1 0 0);                    /* #FFFFFF */
-  --card: oklch(0.22 0.035 290);                 /* #252538 */
+  --background: oklch(0.16 0.03 290); /* #1A1A2E primary screen */
+  --foreground: oklch(1 0 0); /* #FFFFFF */
+  --card: oklch(0.22 0.035 290); /* #252538 */
   --card-foreground: oklch(1 0 0);
-  --card-nested: oklch(0.255 0.04 290);          /* #2E2E45 */
+  --card-nested: oklch(0.255 0.04 290); /* #2E2E45 */
 
   --popover: oklch(0.22 0.035 290);
   --popover-foreground: oklch(1 0 0);
 
   /* Brand */
-  --primary: oklch(0.58 0.245 295);              /* #7B3FF2 */
+  --primary: oklch(0.58 0.245 295); /* #7B3FF2 */
   --primary-foreground: oklch(1 0 0);
-  --primary-light: oklch(0.66 0.225 295);        /* #9B5EFF */
-  --primary-dark: oklch(0.5 0.235 295);          /* #6A35CC */
-  --primary-muted: oklch(0.78 0.14 295);         /* #C39BFF */
+  --primary-light: oklch(0.66 0.225 295); /* #9B5EFF */
+  --primary-dark: oklch(0.5 0.235 295); /* #6A35CC */
+  --primary-muted: oklch(0.78 0.14 295); /* #C39BFF */
 
   --secondary: oklch(0.255 0.04 290);
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.255 0.04 290);
-  --muted-foreground: oklch(0.78 0.025 290);     /* #B8B8CC */
-  --text-tertiary: oklch(0.55 0.03 290);         /* #7A7A9A */
+  --muted-foreground: oklch(0.78 0.025 290); /* #B8B8CC */
+  --text-tertiary: oklch(0.55 0.03 290); /* #7A7A9A */
 
   --accent: oklch(0.66 0.225 295);
   --accent-foreground: oklch(1 0 0);
@@ -88,13 +88,13 @@
   --ring: oklch(0.66 0.225 295);
 
   /* Data viz */
-  --chart-1: oklch(0.66 0.225 295);              /* primary light */
-  --chart-2: oklch(0.78 0.13 175);               /* #4ECAAA teal */
-  --chart-3: oklch(0.65 0.16 255);               /* #5B8FF9 blue */
-  --chart-4: oklch(0.74 0.16 50);                /* #F79F5A orange */
+  --chart-1: oklch(0.66 0.225 295); /* primary light */
+  --chart-2: oklch(0.78 0.13 175); /* #4ECAAA teal */
+  --chart-3: oklch(0.65 0.16 255); /* #5B8FF9 blue */
+  --chart-4: oklch(0.74 0.16 50); /* #F79F5A orange */
   --chart-5: oklch(0.78 0.14 295);
 
-  --sidebar: oklch(0.135 0.03 290);              /* #0D0D1A app bg */
+  --sidebar: oklch(0.135 0.03 290); /* #0D0D1A app bg */
   --sidebar-foreground: oklch(1 0 0);
   --sidebar-primary: oklch(0.58 0.245 295);
   --sidebar-primary-foreground: oklch(1 0 0);
@@ -113,7 +113,8 @@
     border-color: var(--color-border);
   }
 
-  html, body {
+  html,
+  body {
     background-color: var(--color-sidebar); /* #0D0D1A app/splash background */
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
@@ -132,7 +133,8 @@
     color: var(--text-tertiary);
   }
   .ring-brand {
-    box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 35%, transparent),
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) 35%, transparent),
       0 12px 40px -10px color-mix(in oklab, var(--primary) 35%, transparent);
   }
 }
