@@ -1,0 +1,25 @@
+version: 2
+
+# What keeps the pinned actions in `.github/workflows` moving. An action
+# pinned to a commit and then forgotten is running last year's code, and
+# nothing about a SHA makes anyone notice. The bot rewrites the pin and its
+# `# vX.Y.Z` comment together, which is why those two cannot drift.
+#
+# Monthly, and grouped so each ecosystem opens one pull request per cycle
+# rather than one per dependency.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      bun:
+        patterns: ["*"]

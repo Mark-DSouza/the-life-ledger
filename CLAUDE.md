@@ -85,7 +85,16 @@ VITE_SUPABASE_PUBLISHABLE_KEY=...  # client-side
 
 `src/server.ts` is the Cloudflare Worker entry; it wraps TanStack Start's bundled SSR entry and adds branded error handling for h3's swallowed 500s.
 
-## gstack
+## Agent skills
 
-Use /browse from gstack for all web browsing. Never use mcp**claude-in-chrome**\* tools.
-Available skills: /office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /design-shotgun, /design-html, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /open-gstack-browser, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /setup-gbrain, /sync-gbrain, /retro, /investigate, /document-release, /codex, /cso, /autoplan, /pair-agent, /careful, /freeze, /guard, /unfreeze, /gstack-upgrade, /learn.
+### Issue tracker
+
+Issues live in GitHub Issues for Mark-DSouza/the-life-ledger (uses the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
