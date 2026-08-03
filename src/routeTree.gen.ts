@@ -20,6 +20,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as FitnessRouteImport } from './routes/fitness'
 import { Route as CareerRouteImport } from './routes/career'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PrototypeOffloaderRouteImport } from './routes/prototype.offloader'
 
 const WorkRoute = WorkRouteImport.update({
   id: '/work',
@@ -76,6 +77,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrototypeOffloaderRoute = PrototypeOffloaderRouteImport.update({
+  id: '/prototype/offloader',
+  path: '/prototype/offloader',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sleep': typeof SleepRoute
   '/work': typeof WorkRoute
+  '/prototype/offloader': typeof PrototypeOffloaderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sleep': typeof SleepRoute
   '/work': typeof WorkRoute
+  '/prototype/offloader': typeof PrototypeOffloaderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sleep': typeof SleepRoute
   '/work': typeof WorkRoute
+  '/prototype/offloader': typeof PrototypeOffloaderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sleep'
     | '/work'
+    | '/prototype/offloader'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sleep'
     | '/work'
+    | '/prototype/offloader'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sleep'
     | '/work'
+    | '/prototype/offloader'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SleepRoute: typeof SleepRoute
   WorkRoute: typeof WorkRoute
+  PrototypeOffloaderRoute: typeof PrototypeOffloaderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prototype/offloader': {
+      id: '/prototype/offloader'
+      path: '/prototype/offloader'
+      fullPath: '/prototype/offloader'
+      preLoaderRoute: typeof PrototypeOffloaderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SleepRoute: SleepRoute,
   WorkRoute: WorkRoute,
+  PrototypeOffloaderRoute: PrototypeOffloaderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

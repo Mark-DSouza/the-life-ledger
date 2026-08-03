@@ -1,0 +1,49 @@
+/* PROTOTYPE — wipe me. Rough synthwave pass extending the real oklch tokens in
+   src/styles.css (--primary/--primary-light/etc.) — NOT a separate palette, and NOT
+   the final token values (see Offloader map "Not yet specified"). Scoped under
+   .proto-synthwave so nothing here leaks into the rest of the app while it's under
+   review. */
+
+.proto-synthwave {
+  --sw-grid-line: color-mix(in oklch, var(--primary-light) 35%, transparent);
+  --sw-glow: var(--primary-light);
+  --sw-glow-strong: oklch(0.78 0.14 295);
+  background-image:
+    linear-gradient(var(--sw-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sw-grid-line) 1px, transparent 1px);
+  background-size: 34px 34px;
+  background-position: center top;
+}
+
+.proto-sw-neon-text {
+  color: var(--sw-glow-strong);
+  text-shadow:
+    0 0 6px color-mix(in oklch, var(--sw-glow-strong) 70%, transparent),
+    0 0 18px color-mix(in oklch, var(--primary) 55%, transparent);
+}
+
+.proto-sw-glow-ring {
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--sw-glow) 55%, transparent),
+    0 0 18px color-mix(in oklch, var(--primary) 45%, transparent);
+}
+
+.proto-sw-capture:focus-within {
+  box-shadow:
+    0 0 0 1px var(--sw-glow-strong),
+    0 0 24px color-mix(in oklch, var(--sw-glow-strong) 60%, transparent);
+}
+
+.proto-sw-dragging {
+  box-shadow:
+    0 0 0 1px var(--sw-glow-strong),
+    0 0 30px color-mix(in oklch, var(--sw-glow-strong) 70%, transparent);
+}
+
+.proto-sw-thread-line {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--sw-glow) 70%, transparent),
+    color-mix(in oklch, var(--sw-glow) 5%, transparent)
+  );
+}
