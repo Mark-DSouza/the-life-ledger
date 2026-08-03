@@ -15,12 +15,14 @@ import {
 import { InlineEdit } from "@/components/inline-edit";
 import { cn } from "@/lib/utils";
 import { INDENTATION_WIDTH, type FlatItem } from "./engine";
-import { useOffloaderTree } from "./use-offloader-tree";
+import type { OffloaderTree } from "./use-offloader-tree";
 
 export const name = "Reddit-thread flat list";
 
-export function VariantA() {
-  const tree = useOffloaderTree();
+// Takes `tree` as a prop (rather than calling useOffloaderTree itself) so the
+// combined page (issue #34) can share one instance with the tree diagram panel —
+// that's the whole live-sync mechanism, not a separate wiring layer.
+export function VariantA({ tree }: { tree: OffloaderTree }) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [captureValue, setCaptureValue] = useState("");
   const [replyValue, setReplyValue] = useState("");
@@ -124,7 +126,7 @@ function Row({
 }: {
   item: FlatItem;
   depth: number;
-  tree: ReturnType<typeof useOffloaderTree>;
+  tree: OffloaderTree;
   isReplying: boolean;
   onStartReply: () => void;
   replyValue: string;
