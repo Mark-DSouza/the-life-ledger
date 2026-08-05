@@ -14,6 +14,7 @@ import { Route as SleepRouteImport } from './routes/sleep'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PersonalRouteImport } from './routes/personal'
+import { Route as OffloadRouteImport } from './routes/offload'
 import { Route as MentalRouteImport } from './routes/mental'
 import { Route as MealsRouteImport } from './routes/meals'
 import { Route as LoginRouteImport } from './routes/login'
@@ -44,6 +45,11 @@ const SignupRoute = SignupRouteImport.update({
 const PersonalRoute = PersonalRouteImport.update({
   id: '/personal',
   path: '/personal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OffloadRoute = OffloadRouteImport.update({
+  id: '/offload',
+  path: '/offload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MentalRoute = MentalRouteImport.update({
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/meals': typeof MealsRoute
   '/mental': typeof MentalRoute
+  '/offload': typeof OffloadRoute
   '/personal': typeof PersonalRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/meals': typeof MealsRoute
   '/mental': typeof MentalRoute
+  '/offload': typeof OffloadRoute
   '/personal': typeof PersonalRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/meals': typeof MealsRoute
   '/mental': typeof MentalRoute
+  '/offload': typeof OffloadRoute
   '/personal': typeof PersonalRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/meals'
     | '/mental'
+    | '/offload'
     | '/personal'
     | '/signup'
     | '/sitemap.xml'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/meals'
     | '/mental'
+    | '/offload'
     | '/personal'
     | '/signup'
     | '/sitemap.xml'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/meals'
     | '/mental'
+    | '/offload'
     | '/personal'
     | '/signup'
     | '/sitemap.xml'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MealsRoute: typeof MealsRoute
   MentalRoute: typeof MentalRoute
+  OffloadRoute: typeof OffloadRoute
   PersonalRoute: typeof PersonalRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -208,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/personal'
       fullPath: '/personal'
       preLoaderRoute: typeof PersonalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offload': {
+      id: '/offload'
+      path: '/offload'
+      fullPath: '/offload'
+      preLoaderRoute: typeof OffloadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mental': {
@@ -262,6 +282,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MealsRoute: MealsRoute,
   MentalRoute: MentalRoute,
+  OffloadRoute: OffloadRoute,
   PersonalRoute: PersonalRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
