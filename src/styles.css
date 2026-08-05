@@ -102,6 +102,11 @@
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(1 0 0 / 6%);
   --sidebar-ring: oklch(0.66 0.225 295);
+
+  /* Synthwave (Offloader) — extends the palette above, doesn't replace it */
+  --synthwave-grid-line: color-mix(in oklch, var(--primary-light) 35%, transparent);
+  --synthwave-glow: var(--primary-light);
+  --synthwave-glow-strong: var(--primary-muted);
 }
 
 .dark {
@@ -136,5 +141,35 @@
     box-shadow:
       0 0 0 1px color-mix(in oklab, var(--primary) 35%, transparent),
       0 12px 40px -10px color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+
+  /* Synthwave (Offloader) — grid backdrop + neon glow states, per panel */
+  .synthwave-grid {
+    background-image:
+      linear-gradient(var(--synthwave-grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--synthwave-grid-line) 1px, transparent 1px);
+    background-size: 34px 34px;
+    background-position: center top;
+  }
+  .synthwave-neon-text {
+    color: var(--synthwave-glow-strong);
+    text-shadow:
+      0 0 6px color-mix(in oklch, var(--synthwave-glow-strong) 70%, transparent),
+      0 0 18px color-mix(in oklch, var(--primary) 55%, transparent);
+  }
+  .synthwave-glow-ring {
+    box-shadow:
+      0 0 0 1px color-mix(in oklch, var(--synthwave-glow) 55%, transparent),
+      0 0 18px color-mix(in oklch, var(--primary) 45%, transparent);
+  }
+  .synthwave-capture:focus-within {
+    box-shadow:
+      0 0 0 1px var(--synthwave-glow-strong),
+      0 0 24px color-mix(in oklch, var(--synthwave-glow-strong) 60%, transparent);
+  }
+  .synthwave-dragging {
+    box-shadow:
+      0 0 0 1px var(--synthwave-glow-strong),
+      0 0 30px color-mix(in oklch, var(--synthwave-glow-strong) 70%, transparent);
   }
 }
