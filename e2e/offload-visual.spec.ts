@@ -18,6 +18,8 @@ test("single root item, no children", async ({ page }) => {
   await page.goto("/offload");
   await page.getByLabel("Capture a new item").fill("Buy groceries");
   await page.getByRole("button", { name: "Add" }).click();
-  await expect(page.getByText("Buy groceries")).toBeVisible();
+  // Item content renders inside an InlineEdit <input> (its value), not as a
+  // plain text node, so this asserts on the input's value, not getByText.
+  await expect(page.locator("li input")).toHaveValue("Buy groceries");
   await expect(page.locator("main")).toHaveScreenshot("offload-single-item.png");
 });
