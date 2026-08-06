@@ -24,7 +24,14 @@ if (existsSync(".env")) {
 // between the two — snapshots taken on a non-Linux machine will not match.
 export default defineConfig({
   testDir: "./e2e",
-  fullyParallel: true,
+  // The Offloader specs share one mutable Supabase account across tests
+  // (no per-test tenancy), so tests aren't actually independent the way
+  // fullyParallel assumes — with it on, CI observed hook/test scheduling
+  // interleave across different tests even at workers: 1, corrupting each
+  // other's data (e.g. one test's rows still present, doubled, inside a
+  // different test's beforeEach-cleared run). Fully serial execution is a
+  // correctness requirement here, not just a performance trade-off.
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
