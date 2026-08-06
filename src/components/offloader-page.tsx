@@ -11,7 +11,7 @@ export function OffloaderPage() {
   const [draft, setDraft] = useState("");
 
   const submit = () => {
-    if (!draft.trim()) return;
+    if (!draft.trim() || loading) return;
     addRootItem(draft);
     setDraft("");
   };
@@ -36,9 +36,10 @@ export function OffloaderPage() {
             onChange={(e) => setDraft(e.target.value)}
             placeholder="What's on your mind?"
             aria-label="Capture a new item"
-            className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm placeholder:text-tertiary focus:border-primary/40 focus:outline-none"
+            disabled={loading}
+            className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm placeholder:text-tertiary focus:border-primary/40 focus:outline-none disabled:opacity-50"
           />
-          <Button type="submit" size="sm" disabled={!draft.trim()}>
+          <Button type="submit" size="sm" disabled={!draft.trim() || loading}>
             <Plus className="h-3.5 w-3.5" /> Add
           </Button>
         </form>
