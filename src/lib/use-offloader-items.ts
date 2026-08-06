@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   listOffloaderItems,
@@ -42,11 +42,6 @@ export function useOffloaderItems() {
   const userId = user?.id;
   const [items, setItems] = useState<OffloaderItem[]>([]);
   const [loading, setLoading] = useState<boolean>(!!userId);
-  // A mutation can fire before the initial list() load resolves (the
-  // capture bar isn't gated on `loading`) — without this guard, the load's
-  // stale pre-mutation snapshot would land afterward and blow away local
-  // state that's already ahead of it.
-  const mutatedSinceLoadRef = useRef(false);
 
   const list = useServerFn(listOffloaderItems);
   const create = useServerFn(createOffloaderItem);
@@ -56,7 +51,6 @@ export function useOffloaderItems() {
 
   useEffect(() => {
     let cancelled = false;
-    mutatedSinceLoadRef.current = false;
     if (!userId) {
       setItems([]);
       setLoading(false);
@@ -65,12 +59,12 @@ export function useOffloaderItems() {
     setLoading(true);
     list()
       .then((data) => {
-        if (cancelled || mutatedSinceLoadRef.current) return;
+        if (cancelled) return;
         setItems(data);
         setLoading(false);
       })
       .catch(() => {
-        if (cancelled || mutatedSinceLoadRef.current) return;
+        if (cancelled) return;
         setItems([]);
         setLoading(false);
       });
@@ -80,15 +74,17 @@ export function useOffloaderItems() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  function markMutated() {
-    mutatedSinceLoadRef.current = true;
-    setLoading(false);
-  }
-
+  // Every mutation function below assumes the initial load has already
+  // landed (editContent/setDone/deleteItem's controls only render once
+  // `loading` is false anyway; addRootItem's caller — the capture bar —
+  // is responsible for the same guard, since it's the one control visible
+  // during the load). Without that, a mutation could fire against a still-
+  // empty `items` before list() resolves, and the load's snapshot arriving
+  // afterward would have no way to distinguish "nothing existed" from
+  // "something new was just added" without discarding real server data.
   async function addRootItem(content: string) {
     const trimmed = content.trim();
-    if (!trimmed || !userId) return;
-    markMutated();
+    if (!trimmed || !userId || loading) return;
     const optimisticId = crypto.randomUUID();
     const now = new Date().toISOString();
     setItems((prev) => [
@@ -114,7 +110,6 @@ export function useOffloaderItems() {
   async function editContent(id: string, content: string) {
     const trimmed = content.trim();
     if (!trimmed) return;
-    markMutated();
     await applyOptimistic(
       setItems,
       (prev) => prev.map((it) => (it.id === id ? { ...it, content: trimmed } : it)),
@@ -123,7 +118,6 @@ export function useOffloaderItems() {
   }
 
   async function setDone(id: string, done: boolean) {
-    markMutated();
     await applyOptimistic(
       setItems,
       (prev) => prev.map((it) => (it.id === id ? { ...it, done } : it)),
@@ -132,7 +126,6 @@ export function useOffloaderItems() {
   }
 
   async function deleteItem(id: string) {
-    markMutated();
     await applyOptimistic(
       setItems,
       (prev) => prev.filter((it) => it.id !== id),

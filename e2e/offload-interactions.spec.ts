@@ -71,3 +71,30 @@ test("deletes a leaf item", async ({ page }) => {
   await page.reload();
   await expect(page.locator("li")).toHaveCount(0);
 });
+
+test("capturing right after a reload doesn't lose pre-existing items", async ({ page }) => {
+  // Regression test: the capture bar used to be interactive before the
+  // initial list load resolved, so a fast capture could complete first and
+  // then get wiped out (or wipe out real data) when the load's snapshot
+  // landed. The capture bar is now disabled until loading finishes, so this
+  // exercises that exact interleaving without any manual synchronization —
+  // Playwright's actionability auto-wait is the thing under test here.
+  await page.goto("/offload");
+  for (const text of ["Existing A", "Existing B", "Existing C"]) {
+    const created = waitForServerFnResponse(page);
+    await page.getByLabel("Capture a new item").fill(text);
+    await page.getByRole("button", { name: "Add" }).click();
+    await created;
+  }
+  await expect(page.locator("li")).toHaveCount(3);
+
+  await page.reload();
+  await page.getByLabel("Capture a new item").fill("Just captured");
+  await page.getByRole("button", { name: "Add" }).click();
+
+  await expect(page.locator("li")).toHaveCount(4);
+  const values = await page
+    .locator("li input")
+    .evaluateAll((els) => els.map((el) => (el as HTMLInputElement).value));
+  expect(values.sort()).toEqual(["Existing A", "Existing B", "Existing C", "Just captured"].sort());
+});
