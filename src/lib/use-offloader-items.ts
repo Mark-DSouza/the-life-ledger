@@ -74,9 +74,17 @@ export function useOffloaderItems() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  // Every mutation function below assumes the initial load has already
+  // landed (editContent/setDone/deleteItem's controls only render once
+  // `loading` is false anyway; addRootItem's caller — the capture bar —
+  // is responsible for the same guard, since it's the one control visible
+  // during the load). Without that, a mutation could fire against a still-
+  // empty `items` before list() resolves, and the load's snapshot arriving
+  // afterward would have no way to distinguish "nothing existed" from
+  // "something new was just added" without discarding real server data.
   async function addRootItem(content: string) {
     const trimmed = content.trim();
-    if (!trimmed || !userId) return;
+    if (!trimmed || !userId || loading) return;
     const optimisticId = crypto.randomUUID();
     const now = new Date().toISOString();
     setItems((prev) => [
