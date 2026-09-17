@@ -1,5 +1,7 @@
--- Seed data for the local stack only. Runs after migrations on every
--- `bun db:reset` / `bun db:start`; never executes against the hosted project.
+-- Seed data for the local stack only; never executes against the hosted
+-- project. `bun db:reset` runs it every time. `bun db:start` runs it only when
+-- it initialises the database volume — a later stop/start reuses that volume
+-- and does not re-seed, so reach for `bun db:reset` to get this account back.
 --
 -- Creates the dedicated e2e account that e2e/global-setup.ts signs in as. On
 -- hosted this account was provisioned by hand (see issue #45); locally it has

@@ -78,6 +78,8 @@ Save strategy for fitness/meals/sleep/mental: upsert the day row (conflict on `u
 
 The Supabase CLI is a devDependency (`supabase` in `package.json`), so `bun db:*` needs only Docker. `bun db:start` brings up local Postgres, Auth, PostgREST and Studio; `bun db:reset` drops the database, replays `supabase/migrations/*.sql` in order from empty, then runs `supabase/seed.sql`. `supabase/config.toml` is the CLI's generated config with `project_id` kept as the hosted Lovable project ref, so container names and `supabase link` line up with the project this repo deploys to.
 
+> **The stack does not currently come up.** `20260805170337_eb22ffd8…` re-creates `public.offloader_items`, which `20260805152424_40b916f5…` already created, so replaying the directory from empty dies on `ERROR: relation "offloader_items" already exists (SQLSTATE 42P07)`. That kills `bun db:start` on a fresh machine, `bun db:reset`, and `bun db:diff` alike — all three replay the same files, the last into a shadow database. Hosted only ever ran the later migration, which is why it never showed up there. Tracked in issue #57; everything below works once that's resolved.
+
 To point the app and Playwright at it:
 
 ```bash
@@ -86,14 +88,16 @@ cp .env.local.example .env.local   # local URL + demo keys + seeded e2e account
 bun dev                            # or: bun test:e2e
 ```
 
-Delete `.env.local` to go back to hosted. Local credentials are the CLI's fixed demo keys — not secrets, worthless off 127.0.0.1. Note `VITE_SUPABASE_PROJECT_ID=localhost` there: supabase-js derives its session storage key from the first hostname label of the URL, and `e2e/global-setup.ts` builds the same key from this variable, so the two have to agree.
+Copy `.env.local` whole rather than overriding a subset — a partial copy points the browser, the server fns and `global-setup` at different backends, and none of the resulting errors name the cause. Delete it to go back to hosted. Local credentials are the CLI's fixed demo keys: not secrets, worthless off 127.0.0.1.
 
-`supabase/seed.sql` creates the e2e account that `global-setup` signs in as. Hosted has that account provisioned by hand (issue #45); locally it is seeded, because there's no inbox to confirm a sign-up against.
+Spell the local URLs `localhost`, not the `127.0.0.1` form `bun db:status` prints. supabase-js names its session storage key after the first label of the URL's hostname, so the two spellings yield different keys and a session written under one is invisible to a page built with the other. `e2e/global-setup.ts` derives its key from the same URL for exactly this reason.
 
-**A schema change can now be verified before it merges** — run `bun db:reset` and watch the migration replay, rather than finding out when Lovable Cloud applies it on merge to the hosted project. Two caveats on how much that proves:
+`supabase/seed.sql` creates the e2e account that `global-setup` signs in as. Hosted has that account provisioned by hand (issue #45); locally it is seeded, because there's no inbox to confirm a sign-up against. That account is password-only and `/login` offers OTP/magic link only, so to sign in by hand locally, request a link and open it from the mail catcher at **http://localhost:54324** — nothing is actually delivered.
 
-- **Migrations do not currently replay from empty.** `20260805170337_eb22ffd8…` re-creates `public.offloader_items`, which `20260805152424_40b916f5…` already created, so a reset dies on `ERROR: relation "offloader_items" already exists (SQLSTATE 42P07)`. The hosted project only ever ran the later one. Tracked in issue #57 — until it's resolved, a local reset is not a clean check.
-- **A green local run says nothing about drift.** The migration files are known not to be a faithful record of hosted (see above), so `bun db:diff` against the linked project is the only thing that measures it. It needs `bunx supabase link --project-ref yejiirdxgewpjfdintyr` first, which prompts for the hosted database password — no such check has been run yet.
+**A schema change can now be verified before it merges** — run `bun db:reset` and watch the migration replay, rather than finding out when Lovable Cloud applies it on merge to the hosted project. Two limits on what that proves:
+
+- **A green local run says nothing about drift.** The migration files are known not to be a faithful record of hosted (see the note above), so `bun db:diff` against the linked project is the only thing that measures it. It needs `bunx supabase link --project-ref yejiirdxgewpjfdintyr` first, which prompts for the hosted database password — no such check has ever been run.
+- **`major_version = 17` in `config.toml` is an assumption.** It has to match the hosted `server_version` or a local replay proves less than it looks like; nobody has linked, so nobody has checked. Confirm it when the link above happens.
 
 ### Key shared components
 
@@ -112,7 +116,7 @@ SUPABASE_URL=...                   # server-side (SSR / worker)
 SUPABASE_PUBLISHABLE_KEY=...       # server-side
 VITE_SUPABASE_URL=...              # client-side (Vite build-time)
 VITE_SUPABASE_PUBLISHABLE_KEY=...  # client-side
-VITE_SUPABASE_PROJECT_ID=...       # client-side; also used to derive the Supabase auth storage key
+VITE_SUPABASE_PROJECT_ID=...       # written by Lovable; no longer read by any code here
 ```
 
 Playwright e2e (`bun test:e2e`) additionally needs `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` — credentials for a dedicated, password-auth-enabled Supabase test account, never a real user. See `e2e/global-setup.ts` and `.env.example`.
