@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
+  Inbox,
   Dumbbell,
   UtensilsCrossed,
   Moon,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
+  { to: "/offload", label: "Offload", icon: Inbox },
   { to: "/fitness", label: "Fitness", icon: Dumbbell },
   { to: "/meals", label: "Meals", icon: UtensilsCrossed },
   { to: "/sleep", label: "Sleep", icon: Moon },

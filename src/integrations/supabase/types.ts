@@ -373,6 +373,47 @@ export type Database = {
         }
         Relationships: []
       }
+      offloader_items: {
+        Row: {
+          content: string
+          created_at: string
+          done: boolean
+          id: string
+          parent_id: string | null
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          done?: boolean
+          id?: string
+          parent_id?: string | null
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          done?: boolean
+          id?: string
+          parent_id?: string | null
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offloader_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "offloader_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sleep_days: {
         Row: {
           bedtime: string
