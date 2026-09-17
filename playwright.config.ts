@@ -7,8 +7,13 @@ import { defineConfig, devices } from "@playwright/test";
 // `playwright` binary's shebang. Load .env by hand here, once, before
 // anything else in this file runs; CI doesn't need this file (it sets real
 // env vars directly), so existing env always wins over the file.
-if (existsSync(".env")) {
-  for (const line of readFileSync(".env", "utf-8").split("\n")) {
+//
+// `.env.local` is read first so it wins over `.env`, matching how Vite and Bun
+// rank the two. That's what points a run at the local Supabase stack
+// (.env.local.example) while `.env` keeps the hosted credentials.
+for (const file of [".env.local", ".env"]) {
+  if (!existsSync(file)) continue;
+  for (const line of readFileSync(file, "utf-8").split("\n")) {
     const match = /^([A-Z_][A-Z0-9_]*)=(.*)$/.exec(line.trim());
     if (!match) continue;
     const [, key, rawValue] = match;

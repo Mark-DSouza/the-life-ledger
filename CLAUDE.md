@@ -5,11 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-bun dev          # Start dev server (Vite)
+bun dev          # Start dev server (Vite), on :8080
 bun build        # Production build (Cloudflare Workers target)
 bun lint         # ESLint
 bun format       # Prettier write
 bun test:e2e     # Playwright (visual-snapshot + functional), against e2e/
+
+bun db:start     # Start the local Supabase stack (Docker)
+bun db:stop      # Stop it
+bun db:reset     # Recreate it from scratch: replay every migration, then seed
+bun db:status    # Print local URLs and keys
+bun db:diff      # Schema drift: local migrations vs the linked hosted project
 ```
 
 No unit-test suite is configured. There is no single-test command.
@@ -68,6 +74,27 @@ The data model is weekly (Mon–Sun). Each section has a parent "days" table (on
 
 Save strategy for fitness/meals/sleep/mental: upsert the day row (conflict on `user_id,weekday`), then delete+insert child rows. Save strategy for goals/tasks boards: full delete+insert. Offloader deviates from both: every mutation is a single targeted `UPDATE`/`INSERT`/`DELETE` on `offloader_items`, keyed by `id` (fractional `position` lets a reorder move exactly one row).
 
+### Local database
+
+The Supabase CLI is a devDependency (`supabase` in `package.json`), so `bun db:*` needs only Docker. `bun db:start` brings up local Postgres, Auth, PostgREST and Studio; `bun db:reset` drops the database, replays `supabase/migrations/*.sql` in order from empty, then runs `supabase/seed.sql`. `supabase/config.toml` is the CLI's generated config with `project_id` kept as the hosted Lovable project ref, so container names and `supabase link` line up with the project this repo deploys to.
+
+To point the app and Playwright at it:
+
+```bash
+bun db:start
+cp .env.local.example .env.local   # local URL + demo keys + seeded e2e account
+bun dev                            # or: bun test:e2e
+```
+
+Delete `.env.local` to go back to hosted. Local credentials are the CLI's fixed demo keys — not secrets, worthless off 127.0.0.1. Note `VITE_SUPABASE_PROJECT_ID=localhost` there: supabase-js derives its session storage key from the first hostname label of the URL, and `e2e/global-setup.ts` builds the same key from this variable, so the two have to agree.
+
+`supabase/seed.sql` creates the e2e account that `global-setup` signs in as. Hosted has that account provisioned by hand (issue #45); locally it is seeded, because there's no inbox to confirm a sign-up against.
+
+**A schema change can now be verified before it merges** — run `bun db:reset` and watch the migration replay, rather than finding out when Lovable Cloud applies it on merge to the hosted project. Two caveats on how much that proves:
+
+- **Migrations do not currently replay from empty.** `20260805170337_eb22ffd8…` re-creates `public.offloader_items`, which `20260805152424_40b916f5…` already created, so a reset dies on `ERROR: relation "offloader_items" already exists (SQLSTATE 42P07)`. The hosted project only ever ran the later one. Tracked in issue #57 — until it's resolved, a local reset is not a clean check.
+- **A green local run says nothing about drift.** The migration files are known not to be a faithful record of hosted (see above), so `bun db:diff` against the linked project is the only thing that measures it. It needs `bunx supabase link --project-ref yejiirdxgewpjfdintyr` first, which prompts for the hosted database password — no such check has been run yet.
+
 ### Key shared components
 
 - `AppShell` (`src/components/app-shell.tsx`) — sidebar layout with nav, user info, and sign-out. Desktop sidebar + mobile drawer.
@@ -89,6 +116,8 @@ VITE_SUPABASE_PROJECT_ID=...       # client-side; also used to derive the Supaba
 ```
 
 Playwright e2e (`bun test:e2e`) additionally needs `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` — credentials for a dedicated, password-auth-enabled Supabase test account, never a real user. See `e2e/global-setup.ts` and `.env.example`.
+
+`.env` holds the hosted credentials. `.env.local` overrides it for Vite, Bun and `playwright.config.ts` alike, which is how a run is pointed at the local stack — see "Local database" below. Nothing else distinguishes the two backends; the app reads the same five variables either way.
 
 `src/server.ts` is the Cloudflare Worker entry; it wraps TanStack Start's bundled SSR entry and adds branded error handling for h3's swallowed 500s.
 
