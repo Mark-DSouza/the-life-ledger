@@ -78,8 +78,6 @@ Save strategy for fitness/meals/sleep/mental: upsert the day row (conflict on `u
 
 The Supabase CLI is a devDependency (`supabase` in `package.json`), so `bun db:*` needs only Docker. `bun db:start` brings up local Postgres, Auth, PostgREST and Studio; `bun db:reset` drops the database, replays `supabase/migrations/*.sql` in order from empty, then runs `supabase/seed.sql`. `supabase/config.toml` is the CLI's generated config with `project_id` kept as the hosted Lovable project ref, so container names and `supabase link` line up with the project this repo deploys to.
 
-> **The stack does not currently come up.** `20260805170337_eb22ffd8…` re-creates `public.offloader_items`, which `20260805152424_40b916f5…` already created, so replaying the directory from empty dies on `ERROR: relation "offloader_items" already exists (SQLSTATE 42P07)`. That kills `bun db:start` on a fresh machine, `bun db:reset`, and `bun db:diff` alike — all three replay the same files, the last into a shadow database. Hosted only ever ran the later migration, which is why it never showed up there. Tracked in issue #57; everything below works once that's resolved.
-
 To point the app and Playwright at it:
 
 ```bash
@@ -96,7 +94,7 @@ Spell the local URLs `localhost`, not the `127.0.0.1` form `bun db:status` print
 
 **A schema change can now be verified before it merges** — run `bun db:reset` and watch the migration replay, rather than finding out when Lovable Cloud applies it on merge to the hosted project. Two limits on what that proves:
 
-- **A green local run says nothing about drift.** The migration files are known not to be a faithful record of hosted (see the note above), so `bun db:diff` against the linked project is the only thing that measures it. It needs `bunx supabase link --project-ref yejiirdxgewpjfdintyr` first, which prompts for the hosted database password — no such check has ever been run.
+- **A green local run says nothing about drift.** The migration files are known not to have been a faithful record of hosted: `20260805170337_eb22ffd8…` was a verbatim copy of `20260805152424_40b916f5…` plus two `GRANT`s, because Lovable's agent found `offloader_items` missing on hosted and wrote a second `CREATE TABLE` rather than reconciling. Hosted ran the later one only. That file is now reduced to its grants (issue #57), which unblocked replay — but nothing has yet checked what _else_ differs. `bun db:diff` against the linked project is the only thing that measures it, and it needs `bunx supabase link --project-ref yejiirdxgewpjfdintyr` first, which prompts for the hosted database password. No such check has ever been run.
 - **`major_version = 17` in `config.toml` is an assumption.** It has to match the hosted `server_version` or a local replay proves less than it looks like; nobody has linked, so nobody has checked. Confirm it when the link above happens.
 
 ### Key shared components
