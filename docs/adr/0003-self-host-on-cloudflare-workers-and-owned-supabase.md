@@ -12,7 +12,7 @@ It supersedes the approach in the earlier
 [PRD #16](https://github.com/Mark-DSouza/the-life-ledger/issues/16) and its
 slices #17–#22, closed `wontfix` on 2026-09-17 — that plan targeted a bare
 `workers.dev` URL, predated Offloader, chose Cloudflare Workers Builds before
-this repo hardened its Actions posture (see
+this repo pinned its actions and scoped its scanning (see
 [ADR 0001](0001-pin-actions-and-scope-security-scanning.md)), and gated deploys
 on "the existing vitest suite", which does not exist. The destination is the
 same; most of the reasoning below is not.
@@ -45,11 +45,18 @@ migration files. A dump would additionally import whatever Lovable's agent
 applied outside a migration, which is exactly the coupling this migration
 exists to cut.
 
+So the history does not restart in the sense of being squashed or rewritten:
+`supabase/migrations/*.sql` is replayed file by file, in order, from an empty
+database, exactly as `bun db:reset` does locally. What restarts is the
+_applied_ history — the new project has never had a migration applied to it by
+anything but this repo, where hosted had Lovable's agent writing to it directly
+alongside the files.
+
 This **retires the drift question rather than answering it**. The files are
-true of the new project by construction, and running `bun db:diff --linked`
-against it once its password is held gives the new backend a measured baseline
-from day one — the thing hosted never had (see the "Local database" section of
-`CLAUDE.md`, and
+true of the new project by construction, and pointing `bunx supabase link` at
+it once its password is held makes `bun db:diff` runnable, giving the new
+backend a measured baseline from day one — the thing hosted never had (see the
+"Local database" section of `CLAUDE.md`, and
 [#57](https://github.com/Mark-DSouza/the-life-ledger/issues/57), which made the
 files replay from empty in the first place).
 
@@ -57,16 +64,27 @@ files replay from empty in the first place).
 Builds is the path of least resistance — no CI YAML to write, no API token to
 mint — and #16 chose it for exactly that reason. It is rejected here because
 this repo now has a deliberately hardened pipeline: every `uses:` pinned to a
-commit SHA, CodeQL, dependency review at `fail-on-severity: low`, and one
-aggregated `ci` status that branch protection gates on. Workers Builds would
-stand a **second, parallel pipeline** beside that one, with its own checkout,
-its own install and its own notion of what passes — the deploy path becoming
-the one place in the repo where none of ADR 0001 applies. It is also
-**configured in a dashboard rather than in git**: the build command, the branch
-filter and the environment variables would live in Cloudflare's UI, invisible
-to review and unreproducible from a clone. A GitHub Actions job that waits on
-`ci` and then runs a SHA-pinned deploy action reuses the posture that already
-exists, and the whole deploy is readable in a diff.
+commit SHA per ADR 0001, `security.yml` running CodeQL and dependency review at
+`fail-on-severity: low`, and each workflow rolling its jobs up into a single
+aggregated status — `ci` over lint/typecheck/build/e2e, `security` over the
+scanners — so branch protection has one check per workflow to require. Workers
+Builds would stand a **second, parallel pipeline** beside that, with its own
+checkout, its own install and its own notion of what passes — the deploy path
+becoming the one place in the repo where the SHA-pinning discipline ADR 0001
+records does not reach. It is also **configured in a dashboard rather than in
+git**: the build command, the branch filter and the environment variables would
+live in Cloudflare's UI, invisible to review and unreproducible from a clone.
+A GitHub Actions job that waits on `ci` and then runs a SHA-pinned deploy
+action reuses the posture that already exists, and the whole deploy is readable
+in a diff.
+
+The deploy gate is `ci` alone, so it is worth being exact about what that does
+and does not include: it waits on lint, typecheck, build and e2e, and **not**
+on `security`. CodeQL and dependency review gate the branch, not the deploy —
+dependency review only ever runs on a `pull_request` event and has nothing to
+say about a push, and a CodeQL finding is not the kind of signal that should
+hold a release of already-merged code. Both are required checks for merging
+into `main`, which is the point at which they can still change the outcome.
 
 **The app is served at a subdomain, not at a path under the apex.** The apex
 serves the owner's portfolio, so `markdsouza.dev/life-os` looks like the tidier
@@ -89,10 +107,12 @@ wrong here: **the build already produces a Cloudflare Worker.** Retargeting
 would mean changing the Nitro preset and the server entry (`src/server.ts`,
 which wraps Start's bundled SSR entry to catch h3's swallowed 500s) at the same
 moment as changing databases, so a failure would have two suspects instead of
-one. Cloudflare is where the artifact already runs; SES is used because email
-delivery is the one thing Cloudflare does not offer and `markdsouza.dev` has no
-MX and no SPF record, so DKIM/SPF setup is purely additive. That is the whole
-of AWS's role.
+one. Cloudflare is where the artifact already runs; SES is used because
+Supabase Auth needs outbound SMTP and Cloudflare has no such service to point
+it at.
+`markdsouza.dev` has no MX and no SPF record, so the DKIM/SPF setup SES needs
+is purely additive, with nothing to merge and no existing mail to disturb. That
+is the whole of AWS's role.
 
 **The Lovable Vite package is ejected as part of this migration, not after
 it.** #16 deliberately kept `@lovable.dev/vite-tanstack-config` through the
