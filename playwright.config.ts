@@ -39,7 +39,14 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // One worker everywhere, for the same reason. `fullyParallel: false` only
+  // serializes tests *within* a file — separate spec files still run
+  // concurrently, one per worker, and offload-visual and offload-interactions
+  // both clear and rewrite the same account. Locally that defaulted to one
+  // worker per two cores, so visual's beforeEach/afterEach clear would wipe an
+  // interactions row between its create and its reload; only CI's `workers: 1`
+  // was hiding it, which is why a suite green in CI failed on a dev machine.
+  workers: 1,
   reporter: "html",
   // Signs in a dedicated test-only Supabase account once and writes its
   // session to e2e/.auth/user.json; authenticated specs load it via
