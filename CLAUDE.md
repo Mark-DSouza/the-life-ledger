@@ -86,6 +86,8 @@ cp .env.local.example .env.local   # local URL + demo keys + seeded e2e account
 bun dev                            # or: bun test:e2e
 ```
 
+`.env.local.example` also carries the local stack's `SUPABASE_SERVICE_ROLE_KEY`, which bypasses RLS. Nothing in the repo reads it: the app and the e2e helpers go through the anon key plus a real user JWT so they exercise the same RLS policies hosted does. Use it from a throwaway admin script only — seeding another user's rows, reading a table RLS would hide.
+
 Copy `.env.local` whole rather than overriding a subset — a partial copy points the browser, the server fns and `global-setup` at different backends, and none of the resulting errors name the cause. Delete it to go back to hosted. Local credentials are the CLI's fixed demo keys: not secrets, worthless off 127.0.0.1.
 
 Spell the local URLs `localhost`, not the `127.0.0.1` form `bun db:status` prints. supabase-js names its session storage key after the first label of the URL's hostname, so the two spellings yield different keys and a session written under one is invisible to a page built with the other. `e2e/global-setup.ts` derives its key from the same URL for exactly this reason.
