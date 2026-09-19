@@ -109,10 +109,9 @@ which wraps Start's bundled SSR entry to catch h3's swallowed 500s) at the same
 moment as changing databases, so a failure would have two suspects instead of
 one. Cloudflare is where the artifact already runs; SES is used because
 Supabase Auth needs outbound SMTP and Cloudflare has no such service to point
-it at.
-`markdsouza.dev` has no MX and no SPF record, so the DKIM/SPF setup SES needs
-is purely additive, with nothing to merge and no existing mail to disturb. That
-is the whole of AWS's role.
+it at. `markdsouza.dev` has no MX and no SPF record, so the DKIM/SPF setup SES
+needs is purely additive, with nothing to merge and no existing mail to
+disturb. That is the whole of AWS's role.
 
 **The Lovable Vite package is ejected as part of this migration, not after
 it.** #16 deliberately kept `@lovable.dev/vite-tanstack-config` through the
