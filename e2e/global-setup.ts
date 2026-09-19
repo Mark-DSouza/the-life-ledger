@@ -18,14 +18,12 @@ export const AUTH_FILE = path.join(dirname, ".auth", "user.json");
 export default async function globalSetup() {
   const url = process.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL;
   const anonKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
-  const projectId = process.env.VITE_SUPABASE_PROJECT_ID;
   const email = process.env.E2E_TEST_EMAIL;
   const password = process.env.E2E_TEST_PASSWORD;
 
   const missing = [
     ...(!url ? ["VITE_SUPABASE_URL"] : []),
     ...(!anonKey ? ["VITE_SUPABASE_PUBLISHABLE_KEY"] : []),
-    ...(!projectId ? ["VITE_SUPABASE_PROJECT_ID"] : []),
     ...(!email ? ["E2E_TEST_EMAIL"] : []),
     ...(!password ? ["E2E_TEST_PASSWORD"] : []),
   ];
@@ -47,7 +45,13 @@ export default async function globalSetup() {
     throw new Error(`Playwright auth setup: sign-in failed: ${error?.message ?? "no session"}`);
   }
 
-  const storageKey = `sb-${projectId}-auth-token`;
+  // The app never passes an explicit `auth.storageKey`, so supabase-js derives
+  // one from the first label of the URL's hostname. Deriving it here the same
+  // way keeps the two in step by construction: hosted gives the project ref,
+  // the local stack gives "localhost". Reading it from a separate variable
+  // instead let the two disagree, and the only symptom was a browser that
+  // silently arrived signed out.
+  const storageKey = `sb-${new URL(url!).hostname.split(".")[0]}-auth-token`;
   const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:4321";
 
   mkdirSync(path.dirname(AUTH_FILE), { recursive: true });

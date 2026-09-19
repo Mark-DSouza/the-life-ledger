@@ -7,8 +7,13 @@ import { defineConfig, devices } from "@playwright/test";
 // `playwright` binary's shebang. Load .env by hand here, once, before
 // anything else in this file runs; CI doesn't need this file (it sets real
 // env vars directly), so existing env always wins over the file.
-if (existsSync(".env")) {
-  for (const line of readFileSync(".env", "utf-8").split("\n")) {
+//
+// `.env.local` is read first so it wins over `.env`, matching how Vite and Bun
+// rank the two. That's what points a run at the local Supabase stack
+// (.env.local.example) while `.env` keeps the hosted credentials.
+for (const file of [".env.local", ".env"]) {
+  if (!existsSync(file)) continue;
+  for (const line of readFileSync(file, "utf-8").split("\n")) {
     const match = /^([A-Z_][A-Z0-9_]*)=(.*)$/.exec(line.trim());
     if (!match) continue;
     const [, key, rawValue] = match;
@@ -34,7 +39,14 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // One worker everywhere, for the same reason. `fullyParallel: false` only
+  // serializes tests *within* a file — separate spec files still run
+  // concurrently, one per worker, and offload-visual and offload-interactions
+  // both clear and rewrite the same account. Locally that defaulted to one
+  // worker per two cores, so visual's beforeEach/afterEach clear would wipe an
+  // interactions row between its create and its reload; only CI's `workers: 1`
+  // was hiding it, which is why a suite green in CI failed on a dev machine.
+  workers: 1,
   reporter: "html",
   // Signs in a dedicated test-only Supabase account once and writes its
   // session to e2e/.auth/user.json; authenticated specs load it via
