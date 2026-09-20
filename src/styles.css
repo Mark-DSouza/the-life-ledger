@@ -5,6 +5,16 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Pin the UI typeface instead of inheriting Tailwind's default.
+     Tailwind 4.3 changed its `--font-sans` from this stack to one leading with
+     -apple-system/Segoe UI/Roboto/Noto Sans/Arial, which renders the app in a
+     different face on any machine that has those installed — a silent restyle
+     riding in on a patch bump. This is the stack the app has always rendered
+     with; declaring it makes the typography ours rather than a dependency
+     default. */
+  --font-sans:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

@@ -29,12 +29,24 @@ No unit-test suite is configured. There is no single-test command.
 - **TanStack Start** (SSR framework) + **TanStack Router** (file-based routing) + **React 19**
 - **Tailwind CSS v4** via `@tailwindcss/vite`
 - **Supabase** (auth + database)
-- **Cloudflare Workers** as the deployment target (`wrangler.jsonc`, `src/server.ts` is the worker entry)
+- **Cloudflare Workers** as the deployment target, built through Nitro's `cloudflare-module` preset (`wrangler.jsonc`, `src/server.ts` is the worker entry)
 - **Bun** as the package manager and runtime
 
-### Vite config constraint
+### Vite config
 
-`vite.config.ts` uses `@lovable.dev/vite-tanstack-config` which already bundles `tanstackStart`, `viteReact`, `tailwindcss`, `tsConfigPaths`, `cloudflare` (build), `componentTagger` (dev), env injection, `@` alias, and deduplication plugins. **Do not manually add any of these** — duplicates break the build.
+`vite.config.ts` is written out in this repo and uses open-source plugins only: `tailwindcss`, `tsConfigPaths`, `nitro` (preset `cloudflare-module`), `tanstackStart` and `viteReact`, in that order. It previously delegated the whole plugin graph to `@lovable.dev/vite-tanstack-config`; that package is gone, along with the 69 `bun.lock` entries that resolved from a private Lovable npm mirror.
+
+Read `vite.config.ts` for the whole of it; three parts are worth calling out, because they replace behaviour the vendor package used to supply and Vite does not do on its own:
+
+- **`VITE_*` injection.** Vite inlines those only into the client environment; `loadEnv` + `define` puts them into every environment, because the Supabase client is also constructed during SSR.
+- **The `@` → `src` alias**, matching `tsconfig.json`'s `paths`.
+- **A `dedupe` list** for React and TanStack Query. Two copies of either in one bundle breaks hooks — both read module-level state.
+
+`tanstackStart` is passed `server: { entry: "server" }` so Start's bundled SSR entry is replaced by `src/server.ts`; `wrangler.jsonc`'s `main` alone does not do this, and Nitro warns that it overrides it.
+
+It also keeps the vendor package's `importProtection` settings, **plus `**/*.server.*`**, which the vendor's config dropped by accident. TanStack merges `client.specifiers` with its defaults but _replaces_ `client.files`, so naming `["**/server/**"]` silently discarded the default `["**/*.server.*"]` — and the repo's one `*.server.*` file is `src/integrations/supabase/client.server.ts`, the service-role client that bypasses RLS. Importing it from a route built cleanly and put the module in the browser bundle. It now fails the build. (No key was ever exposed: it is read from `process.env` at runtime, and `process.env` compiles to `{}` on the client.)
+
+**The build output is `.output/`, not `dist/`.** Nitro writes `.output/public` (client assets) and `.output/server` (the Worker), and generates `.output/server/wrangler.json` from `wrangler.jsonc` — `name` and `compatibility_*` carry over, `main` is replaced with Nitro's own entry (it logs a warning saying so).
 
 ### Routing
 
