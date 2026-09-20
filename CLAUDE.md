@@ -36,13 +36,15 @@ No unit-test suite is configured. There is no single-test command.
 
 `vite.config.ts` is written out in this repo and uses open-source plugins only: `tailwindcss`, `tsConfigPaths`, `nitro` (preset `cloudflare-module`), `tanstackStart` and `viteReact`, in that order. It previously delegated the whole plugin graph to `@lovable.dev/vite-tanstack-config`; that package is gone, along with the 69 `bun.lock` entries that resolved from a private Lovable npm mirror.
 
-Three things the config does by hand, because Vite does not do them on its own:
+Read `vite.config.ts` for the whole of it; three parts are worth calling out, because they replace behaviour the vendor package used to supply and Vite does not do on its own:
 
 - **`VITE_*` injection.** Vite inlines those only into the client environment; `loadEnv` + `define` puts them into every environment, because the Supabase client is also constructed during SSR.
 - **The `@` → `src` alias**, matching `tsconfig.json`'s `paths`.
 - **A `dedupe` list** for React and TanStack Query. Two copies of either in one bundle breaks hooks — both read module-level state.
 
 `tanstackStart` is passed `server: { entry: "server" }` so Start's bundled SSR entry is replaced by `src/server.ts`; `wrangler.jsonc`'s `main` alone does not do this, and Nitro warns that it overrides it.
+
+It also keeps the vendor package's `importProtection` settings, **plus `**/*.server.*`**, which the vendor's config dropped by accident. TanStack merges `client.specifiers` with its defaults but _replaces_ `client.files`, so naming `["**/server/**"]` silently discarded the default `["**/*.server.*"]` — and the repo's one `*.server.*` file is `src/integrations/supabase/client.server.ts`, the service-role client that bypasses RLS. Importing it from a route built cleanly and put the module in the browser bundle. It now fails the build. (No key was ever exposed: it is read from `process.env` at runtime, and `process.env` compiles to `{}` on the client.)
 
 **The build output is `.output/`, not `dist/`.** Nitro writes `.output/public` (client assets) and `.output/server` (the Worker), and generates `.output/server/wrangler.json` from `wrangler.jsonc` — `name` and `compatibility_*` carry over, `main` is replaced with Nitro's own entry (it logs a warning saying so).
 

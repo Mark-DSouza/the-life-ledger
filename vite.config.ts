@@ -46,7 +46,11 @@ export default defineConfig(({ mode }) => {
         importProtection: {
           behavior: "error",
           client: {
-            files: ["**/server/**"],
+            // `specifiers` is merged with TanStack's defaults, but `files`
+            // REPLACES them, so the default "**/*.server.*" has to be repeated
+            // here. Without it `client.server.ts` — the service-role Supabase
+            // client — ships to the browser with no build error.
+            files: ["**/*.server.*", "**/server/**"],
             specifiers: ["server-only"],
           },
         },
