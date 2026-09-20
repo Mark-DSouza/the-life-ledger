@@ -1,8 +1,28 @@
 name: CI
 
 on:
+  # `push` is deliberately scoped to `main` rather than `["**"]`. A branch with
+  # an open pull request matches both triggers, and the two runs cannot be
+  # collapsed into one: `github.ref` spells the same branch `refs/heads/<name>`
+  # for the push and `refs/pull/<n>/merge` for the pull request, so a shared
+  # `concurrency` group cannot key on it. Keying on the branch name instead
+  # does collapse them, but only by *cancelling* one — and a cancelled run
+  # still posts its `ci` check to the head commit, in a state branch
+  # protection reads as failure. That leaves the pull request permanently
+  # blocked, which is worse than the problem it fixes (measured on #76).
+  #
+  # Two concurrent runs are not merely wasteful here: the `e2e` job drives the
+  # hosted Supabase project through one shared test account, so they interleave
+  # writes to the same rows and fail each other's assertions.
+  # `fullyParallel: false` serializes tests within a run and does nothing
+  # across runs.
+  #
+  # The cost of this scoping is that a branch pushed *without* a pull request
+  # gets no CI. That is the intended trade: the pull request is where the
+  # result is read, and it also stops every branch push writing to the
+  # production database.
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
     branches: [main]
 
