@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
@@ -5,13 +7,17 @@ import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
+// Resolved from this file rather than process.cwd(), so the paths below don't
+// depend on which directory Vite was invoked from.
+const projectRoot = fileURLToPath(new URL(".", import.meta.url));
+
 export default defineConfig(({ mode }) => {
   // Vite only inlines VITE_* into the client environment on its own. The
   // Supabase client is constructed during SSR too, so the same values are
-  // defined across every environment.
-  const clientEnv = loadEnv(mode, process.cwd(), "VITE_");
+  // defined across every environment — hence the name, which is not "client".
+  const publicEnv = loadEnv(mode, projectRoot, "VITE_");
   const define = Object.fromEntries(
-    Object.entries(clientEnv).map(([key, value]) => [
+    Object.entries(publicEnv).map(([key, value]) => [
       `import.meta.env.${key}`,
       JSON.stringify(value),
     ]),
@@ -21,7 +27,7 @@ export default defineConfig(({ mode }) => {
     define,
     server: { host: "::", port: 8080 },
     resolve: {
-      alias: { "@": `${process.cwd()}/src` },
+      alias: { "@": `${projectRoot}src` },
       // React and TanStack Query break if two copies end up in one bundle —
       // hooks read module-level state (the dispatcher, the query cache).
       dedupe: [
