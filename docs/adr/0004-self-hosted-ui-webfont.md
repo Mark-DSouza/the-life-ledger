@@ -67,6 +67,16 @@ ticket's open question about Inter v4's optical-size axis: reading the file's
 Google's partial-instancing. So `font-weight` alone drives it and there is no
 `font-variation-settings` to wire up or get wrong.
 
+That last claim is the kind that rots into folklore once the person who
+measured it has moved on, so it is not left as an assertion here.
+`public/fonts/PROVENANCE.md` records the source URL, the sha256 and a
+dependency-free script that re-derives the axis list from the committed bytes —
+run it and the answer either still reads `axisCount: 1` or the font has been
+swapped without this ADR being revisited. `public/fonts/OFL.txt` sits beside
+the font because the OFL requires its notice to travel with the software, and
+a font committed without one is a licence problem however clearly the ADR
+describes the licence.
+
 **Latin subset only, with `unicode-range` declared.** The app's UI strings are
 English. Declaring the subset's actual coverage means a browser asked to render
 anything outside it skips the download entirely and falls through to the

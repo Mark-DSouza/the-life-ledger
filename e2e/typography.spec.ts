@@ -60,7 +60,7 @@ test("renders in the self-hosted face, with a generic stack behind it", async ({
     .locator("body")
     .evaluate((el) => getComputedStyle(el).fontFamily.toLowerCase());
   // Inter first, so it wins wherever it covers the glyph...
-  expect(fontFamily.startsWith(`inter`)).toBe(true);
+  expect(fontFamily.startsWith("inter")).toBe(true);
   // ...and a generic stack behind it, for the swap window and for anything
   // outside the latin subset.
   expect(fontFamily).toContain("sans-serif");

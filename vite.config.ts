@@ -49,11 +49,12 @@ export default defineConfig(({ mode }) => {
         routeRules: {
           // The webfont is preloaded on every page, so without this it costs a
           // revalidation round trip per navigation — Workers Assets defaults
-          // unhashed files to `max-age=0, must-revalidate`. Nitro already emits
-          // this rule for /assets/* (which Vite content-hashes); /fonts/* is a
-          // fixed path, so it needs its own. Safe to mark immutable because the
-          // filename names the family, the subset and the variable axis:
-          // swapping the face means a new filename, not new bytes at this one.
+          // unhashed files to `max-age=0, must-revalidate`. Nitro emits the
+          // same rule for the Vite-built assets, but those are content-hashed
+          // and live under a path this one doesn't reach. Safe to mark
+          // immutable because the filename names the family, the subset and
+          // the variable axis: swapping the face means a new filename, not new
+          // bytes at this one.
           "/fonts/**": {
             headers: { "cache-control": "public, max-age=31536000, immutable" },
           },

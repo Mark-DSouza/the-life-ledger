@@ -13,20 +13,15 @@
    happened to have Roboto or Arial. Pinning the stack (below) fixed the
    symptom; shipping the face fixes the cause.
 
-   Served from our own origin, not a font CDN: per ADR 0003 the app should not
-   depend on infrastructure someone else operates, and it saves a third-party
-   request on every cold load.
-
    One variable file spans the whole weight range the UI uses (400 body, 500
-   `font-medium`, 600 `font-semibold`, 700 `font-bold`), so `font-weight` alone
-   drives it. This is Google Fonts' Inter v20 latin subset, partial-instanced to
-   a single `wght` axis — Inter v4's optical-size axis is *not* in this file
-   (verified by reading its `fvar`: axisCount 1, wght 100–900), so there is no
-   `opsz` to wire up and no `font-variation-settings` needed. No italic face is
-   shipped because nothing in the app renders italics.
+   `font-medium`, 600 `font-semibold`, 700 `font-bold`), and it carries a single
+   `wght` axis, so `font-weight` alone drives it — there is no `opsz` here to
+   wire up and no `font-variation-settings` needed. No italic face is shipped
+   because nothing in the app renders italics.
 
-   Inter is OFL 1.1, so committing the file here and serving it is unambiguous.
-   See docs/adr/0004-self-hosted-ui-webfont.md. */
+   Which build this is, why it has no optical-size axis, and why it is served
+   from our own origin rather than linked from Google: see
+   docs/adr/0004-self-hosted-ui-webfont.md. */
 @font-face {
   font-family: "Inter";
   font-style: normal;
