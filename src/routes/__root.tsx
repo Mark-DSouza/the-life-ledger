@@ -122,7 +122,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4b427c0f-7b47-47e2-b6c0-3698ca11209d/id-preview-dc8ce8da--678df9e1-3cc1-4b18-8620-32c0e777b21c.lovable.app-1778751778796.png",
       },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      // Ahead of the stylesheet, so the face is in flight before the CSS that
+      // asks for it has even parsed — otherwise `font-display: swap` gets a
+      // visible flash of the fallback stack on first paint. `crossOrigin` is
+      // required even though this is same-origin: font fetches are CORS-mode,
+      // and a preload made in a different mode is discarded and re-fetched.
+      {
+        rel: "preload",
+        href: "/fonts/inter-variable-latin.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      { rel: "stylesheet", href: appCss },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
