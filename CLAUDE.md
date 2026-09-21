@@ -108,7 +108,7 @@ Spell the local URLs `localhost`, not the `127.0.0.1` form `bun db:status` print
 
 **A schema change can now be verified before it merges** — run `bun db:reset` and watch the migration replay, rather than finding out when Lovable Cloud applies it on merge to the hosted project. `bun test:e2e` passes against the local stack, so a change can be exercised end to end before anyone merges it.
 
-CI does that replay too, so nobody has to remember to (issue #66). The `migrations` job in `.github/workflows/ci.yml` starts the local stack with every service but Postgres excluded, runs `bun db:reset`, and feeds the aggregated `ci` status — a migration that does not apply from empty turns the pull request red, with the SQLSTATE and the offending statement in the log. It replays only what `supabase/migrations/` contains, and says nothing about whether hosted matches — that is the subject of the list below.
+CI does that replay too, so nobody has to remember to (issue #66). The `migrations` job in `.github/workflows/ci.yml` starts the local stack with Postgres alone — every other service is excluded — then runs `bun db:reset` and feeds the aggregated `ci` status — a migration that does not apply from empty turns the pull request red, with the SQLSTATE and the offending statement in the log. It replays only what `supabase/migrations/` contains, and says nothing about whether hosted matches — that is the subject of the list below.
 
 How far that goes, and where it stops:
 

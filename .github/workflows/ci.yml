@@ -144,7 +144,11 @@ jobs:
   # for it.
   #
   # This job replays the directory from nothing, so a migration that does not
-  # apply goes red at review time instead.
+  # apply goes red at review time instead. What it asserts is that the SQL
+  # executes against Postgres alone — a migration or seed that leans on an
+  # object one of the excluded containers creates would pass here and could
+  # still differ from a developer's full-stack `bun db:reset`. Nothing in
+  # supabase/migrations does today.
   migrations:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -172,15 +176,24 @@ jobs:
       # it writes to ships in the Postgres image rather than being created by
       # the Auth container.
       #
-      # A service added to a future CLI release would not be in this list and
-      # would start — slower, but not wrong. `supabase start --help` prints the
-      # current set.
+      # The list is version-coupled to the CLI, and fails soft either way: a
+      # service a future release *adds* is not named here and starts, and a
+      # name it *renames or drops* is silently ignored (measured: `-x` with an
+      # unknown name exits 0 and starts everything else). Both cost time, and
+      # neither can redden this job for a reason that isn't a migration.
+      # `supabase start --help` prints the current set.
       #
       # This step applies the migrations too, on its way to a healthy
       # container, so the next one is the second pass over them. Don't collapse
       # the two: what `start` does depends on whether it finds an existing
       # volume to restore from, and "replayed from empty" is the property this
       # job exists to assert.
+      #
+      # Measured on a runner, not reasoned about: this pair was green on the
+      # first run of #85 — 95s here (image pull included) and 16s below, ~2min
+      # for the job. Note `[api] enabled = true` in config.toml while
+      # `postgrest` is excluded above; the reset's closing "Restarting
+      # containers..." does not need it.
       - name: Start local Postgres
         run: >
           bunx supabase start
@@ -194,7 +207,9 @@ jobs:
         run: bun db:reset
 
   # One status to require on the branch, so a failure in any job reads as one
-  # check rather than three separate ones to wire into branch protection.
+  # check rather than a separate one per job to wire into branch protection.
+  # Deliberately uncounted now: this line said "three" while `needs:` already
+  # listed four, and `security.yml`'s twin comment manages without a number.
   ci:
     needs: [lint, typecheck, build, e2e, migrations]
     if: always()
