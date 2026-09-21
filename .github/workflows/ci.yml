@@ -194,7 +194,7 @@ jobs:
       # for the job. Note `[api] enabled = true` in config.toml while
       # `postgrest` is excluded above; the reset's closing "Restarting
       # containers..." does not need it.
-      - name: Start local Postgres
+      - name: Start local Postgres (applies the migrations on the way up)
         run: >
           bunx supabase start
           -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
@@ -203,6 +203,16 @@ jobs:
       # filename order from empty, then run supabase/seed.sql. The CLI stops at
       # the first statement Postgres rejects and exits non-zero, printing the
       # migration filename, the SQLSTATE and the offending statement.
+      #
+      # Expect the *previous* step to be the one that actually reddens, though.
+      # A runner is always cold, so `start` finds no volume, applies the
+      # migrations itself, and hits the bad statement first — which is why it
+      # is named for that. Measured on #86, a scratch branch carrying a second
+      # `CREATE TABLE public.offloader_items`: `Start local Postgres` failed
+      # with `ERROR: relation "offloader_items" already exists (SQLSTATE
+      # 42P07)`, the filename and the statement, while lint, typecheck, build
+      # and e2e all went green. This step is what catches a migration that
+      # `start` tolerates because it restored a volume instead.
       - name: Replay every migration from an empty database
         run: bun db:reset
 
