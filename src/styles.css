@@ -4,17 +4,53 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* The UI typeface, self-hosted.
+   Before this, the app declared no face at all: every glyph came from whatever
+   the *viewer's* machine had installed, reached through a generic stack. That
+   made the rendering a property of the host rather than of the app — different
+   on a phone, on CI and on this laptop — and it is what let Tailwind 4.3's
+   changed `--font-sans` default silently restyle the app on machines that
+   happened to have Roboto or Arial. Pinning the stack (below) fixed the
+   symptom; shipping the face fixes the cause.
+
+   One variable file spans the whole weight range the UI uses (400 body, 500
+   `font-medium`, 600 `font-semibold`, 700 `font-bold`), and it carries a single
+   `wght` axis, so `font-weight` alone drives it — there is no `opsz` here to
+   wire up and no `font-variation-settings` needed. No italic face is shipped
+   because nothing in the app renders italics.
+
+   Which build this is, why it has no optical-size axis, and why it is served
+   from our own origin rather than linked from Google: see
+   docs/adr/0004-self-hosted-ui-webfont.md. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-variable-latin.woff2") format("woff2");
+  /* The subset's actual coverage. Declaring it lets the browser skip the
+     download entirely for text outside this range, and fall through to the
+     stack below for it rather than rendering tofu. */
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @theme inline {
-  /* Pin the UI typeface instead of inheriting Tailwind's default.
-     Tailwind 4.3 changed its `--font-sans` from this stack to one leading with
-     -apple-system/Segoe UI/Roboto/Noto Sans/Arial, which renders the app in a
-     different face on any machine that has those installed — a silent restyle
-     riding in on a patch bump. This is the stack the app has always rendered
-     with; declaring it makes the typography ours rather than a dependency
-     default. */
+  /* Inter first, then the generic stack the app has always rendered with as a
+     fallback for the swap window and for anything outside the latin subset.
+     Declaring this at all — rather than inheriting Tailwind's `--font-sans` —
+     is deliberate: 4.3 changed that default from this stack to one leading with
+     -apple-system/Segoe UI/Roboto/Noto Sans/Arial, a silent restyle riding in
+     on a patch bump. The typography is ours, not a dependency's. */
   --font-sans:
-    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-    "Noto Color Emoji";
+    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  /* Tabular figures, app-wide. Tailwind's theme.css maps this to
+     `--default-font-feature-settings`, which it applies to `html`. The app is a
+     dashboard: the stat rows, the weekly tables and the Offloader counts are
+     columns of numbers that otherwise shift width as their digits change. */
+  --font-sans--font-feature-settings: "tnum" 1;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -132,6 +168,13 @@
   body {
     background-color: var(--color-sidebar); /* #0D0D1A app/splash background */
     color: var(--color-foreground);
+    /* Kept deliberately, re-checked against Inter (#83). This only does
+       anything in WebKit/Blink on macOS; it is inert on Linux and Windows, so
+       it has no bearing on the committed snapshots either way. Where it does
+       apply, it swaps subpixel for grayscale AA, and the app is white text on a
+       near-black background — the case where subpixel rendering over-weights
+       the stems and fringes them. Inter at these sizes reads cleaner without
+       it. */
     -webkit-font-smoothing: antialiased;
   }
 }

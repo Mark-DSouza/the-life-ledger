@@ -116,6 +116,14 @@ How far that goes, and where it stops:
 - **What that comparison cannot see.** RLS policies, indexes, constraints, defaults, triggers and grants are invisible through both PostgREST and `types.ts`. RLS policies matter most: they are exactly what `bun test:e2e` exercises, so a green e2e run against the local stack inherits this gap rather than closing it. Only `bun db:diff` measures any of this, and it needs `bunx supabase link --project-ref yejiirdxgewpjfdintyr` first, which prompts for the hosted database password. That has still never been run, so **drift remains an open question, not a settled one.**
 - **`major_version = 17` in `config.toml` is an assumption.** It has to match the hosted `server_version` or a local replay proves less than it looks like. Hosted exposes no version over PostgREST, so confirm it when the link above happens.
 
+### Typography
+
+The UI face is **Inter**, self-hosted: one latin-subset variable `woff2` committed at `public/fonts/inter-variable-latin.woff2` and served from the Worker's own origin. Nothing is fetched from a font CDN. `src/styles.css` declares the `@font-face` (`font-display: swap`, `font-weight: 100 900`, with the subset's `unicode-range`) and names it first in `--font-sans`, keeping the generic stack behind it; `src/routes/__root.tsx` preloads it ahead of the stylesheet. `--font-sans--font-feature-settings: "tnum" 1` turns on tabular figures app-wide via Tailwind's `--default-font-feature-settings` hook.
+
+The file is Google Fonts' Inter v20 partial instance, which exposes a single `wght` axis (`opsz` is pinned out), so `font-weight` drives it and there is no `font-variation-settings`. `public/fonts/PROVENANCE.md` has the source URL, the sha256 and a script that re-derives that axis list from the committed bytes; `public/fonts/OFL.txt` is the licence notice the OFL requires to ship with the font. Its `cache-control` comes from a `/fonts/**` `routeRules` entry in `vite.config.ts`, because the path is fixed rather than content-hashed and Nitro's `/assets/*` rule does not reach it — so **swapping the typeface means a new filename**, not new bytes at this one.
+
+This exists because the app previously rendered in whatever the _viewer's_ machine had installed, which is what let a Tailwind patch bump restyle it and made the visual baselines stable only by coincidence. `e2e/typography.spec.ts` asserts the guarantee directly. See `docs/adr/0004-self-hosted-ui-webfont.md`.
+
 ### Key shared components
 
 - `AppShell` (`src/components/app-shell.tsx`) — sidebar layout with nav, user info, and sign-out. Desktop sidebar + mobile drawer.
